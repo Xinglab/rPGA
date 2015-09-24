@@ -75,7 +75,7 @@ The rPGA manual is here:
 
 Contacts and bug reports
 ------------------------
-Yi D. Xing
+Yi Xing
 yxing@ucla.edu
 
 Shayna Stein
