@@ -52,6 +52,15 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+autom4te.cache
+config.log
+config.status
+Makefile
+
+#Run time setting files
+.rPGAGenome.yaml
+.rPGAGenotype.yaml
+.rPGAProject.yaml
 
 # PyBuilder
 target/
