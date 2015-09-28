@@ -19,6 +19,7 @@
 
 # standard python imports
 import sys, os
+import subprocess
 import re,logging,time,datetime,commands,argparse
 from collections import defaultdict
 
@@ -35,6 +36,7 @@ def STAR_create_genome(project, genome, gnme):
   opts += (" --genomeFastaFiles " + str(genome))  # not tracked; magic number
   opts += (" --runThreadN 8")      # not tracked; magic number
 
+  env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
 
   print commandSTAR
@@ -60,6 +62,8 @@ def STAR_perform_mapping(project, gnme, seqs):
   opts += ("/" + str(gnme) + "/" + "STARalign ")
   opts += ("--outFilterType BySJout --outFilterIntronMotifs RemoveNoncanonical")
   opts += (" --alignIntronMax 300000 --outSJfilterOverhangMin -1 8 8 8")
+
+  env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
 
   print commandSTAR
