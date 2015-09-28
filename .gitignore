@@ -61,7 +61,6 @@ Makefile
 .rPGAGenome.yaml
 .rPGAGenotype.yaml
 .rPGAProject.yaml
-.rPGASeqs.yaml
 
 # PyBuilder
 target/

@@ -60,10 +60,12 @@ def main(args) :
     if command == "add" :
       if args[0].strip().lower() == "help" :
         print "Help"
+      elif len(args) != 2 :
+        sys.stderr.write("Genome file is not correct\n")
+        sys.exit()
       else :
         dest_fn = open(".rPGASeqs.yaml", "w")
-        for i in range(1,len(args)) :
-          dest_fn.write(args[i] + "\n")
+        dest_fn.write(args[1] + "\n")
         dest_fn.close()
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
