@@ -26,6 +26,61 @@ from collections import defaultdict
 ##            PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                ##
 ################################################################################
 
+def STAR_create_genome(project, genome, gnme):
+
+  # build up options
+  opts = ""
+  opts += (" --runMode genomeGenerate")  # not tracked; magic number
+  opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex")
+  opts += (" --genomeFastaFiles " + str(genome))  # not tracked; magic number
+  opts += (" --runThreadN 8")      # not tracked; magic number
+
+  commandSTAR = ("STAR" + " " + opts)
+
+  print commandSTAR
+
+  # fire off the sub-process
+  processSTAR = subprocess.Popen(commandSTAR, shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, env=env_cpy)
+
+  processSTAR.communicate()
+
+  return processSTAR.wait()
+
+def STAR_perform_mapping(project, gnme, seqs):
+
+  # build up options
+  opts = ""
+  opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex")
+  opts += (" --readFilesIn " +  str(seqs))
+  opts += (" --runThreadN 8 --outFilterMultimapNmax 20")
+  opts += (" --outFilterMismatchNmax 0")
+  opts += (" --outFileNamePrefix " + str(project))
+  opts += ("/" + str(gnme) + "/" + "STARalign ")
+  opts += ("--outFilterType BySJout --outFilterIntronMotifs RemoveNoncanonical")
+  opts += (" --alignIntronMax 300000 --outSJfilterOverhangMin -1 8 8 8")
+  commandSTAR = ("STAR" + " " + opts)
+
+  print commandSTAR
+
+  # fire off the sub-process
+  processSTAR = subprocess.Popen(commandSTAR, shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, env=env_cpy)
+
+  processSTAR.communicate()
+
+  return processSTAR.wait()
+
+################################################################################
+#             PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                 #
+################################################################################
+
+def isHelpString(s):
+  norm = s.strip().lower()
+  return norm == "help" or norm == "--help"
+
 class PersonalizeGenome :
   def __init__(self, outDir, vcf, ref, hap1Ref, hap2Ref):
     self._outDir = outDir
@@ -149,6 +204,12 @@ def main(args) :
     sys.stderr.write(helpStr + "\n\n")
   else :
     command = args[0].strip().lower()
+    outDir = open(".rPGAProject.yaml").readline().rstrip()
+    vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+    ref = open(".rPGAGenome.yaml").readline().rstrip()
+    seqs = open(".rPGASeqs.yaml")
+    hap1Ref = os.path.join(outDir, "hap1.fa")
+    hap2Ref = os.path.join(outDir, "hap2.fa")
     if command == "personalize" :
       if args[0].strip().lower() == "help" :
         print "Help"
@@ -156,11 +217,6 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        outDir = open(".rPGAProject.yaml").readline().rstrip()
-        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-        ref = open(".rPGAGenome.yaml").readline().rstrip()
-        hap1Ref = os.path.join(outDir, "hap1.fa")
-        hap2Ref = os.path.join(outDir, "hap2.fa")
         p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref)
         p.personalizeGenome()
     elif command == "mapping" :
@@ -169,8 +225,13 @@ def main(args) :
       elif len(args) != 1 :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
-#      else :
-#        genome = settings(args[1])
+      else :
+        STAR_create_genome(outDir, ref, "HG19")
+        STAR_create_genome(outDir, hap1Ref, "HAP1")
+        STAR_create_genome(outDir, hap2Ref, "HAP2")
+        STAR_perform_mapping(outDir, "HG19", seqs)
+        STAR_perform_mapping(outDir, "HAP1", seqs)
+        STAR_perform_mapping(outDir, "HAP2", seqs)
     elif command == "discover" :
       if args[0].strip().lower() == "help" :
         print "Help"
