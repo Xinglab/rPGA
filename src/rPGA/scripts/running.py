@@ -171,9 +171,15 @@ class PersonalizeGenome :
       rVal += a + ' ';
     return rVal;
 
-  def haplotypeSpecificSam(): ## extract haplotype specific sam files
+  def haplotypeSpecificSam(self): ## extract haplotype specific sam files
     ## extract junction reads for hg19, hap1, and hap2
     oFile = open(str(self._outDir) + "/commands.txt","a")
+    hgPath = str(self._outDir) + "/HG19"
+    h1Path = str(self._outDir) + "/HAP1"
+    h2Path = str(self._outDir) + "/HAP2"
+    hgTemp = str(self._outDir) + "/HG19/temp"
+    h1Temp = str(self._outDir) + "/HAP1/temp"
+    h2Temp = str(self._outDir) + "/HAP2/temp"
 
     for i in ['HG19','HAP1','HAP2']:
         cmd = 'awk \'$6~"S" {print $1}\' ' + self._outDir + '/' + i + '/STARalign/Aligned.out.sam > '+self._outDir+'/'+i+'/temp/truncatedIDs.txt; '
@@ -211,7 +217,7 @@ class PersonalizeGenome :
     return
 ## end of haplotypeSpecificSam ##
 
-  def junctionCount(sam_fn):
+  def junctionCount(slef,sam_fn):
     ## count number of total and haplotype specific distinct reads that span splice junctions and add to SJ.out files
     readsMapped = defaultdict(list) # key=junction, value = list of reads mapping to junction(by start pos)
     nnR = defaultdict(int) #key = junction, value = number of distinct reads mapped to junction
@@ -242,12 +248,12 @@ class PersonalizeGenome :
 
 ## end of junctionCount ##
 
-  def distinctSJOut():
+  def distinctSJOut(self):
     # count number of distinct reads that align to each junction
     # count the total distinct and haplotype specific distinct
     for i in ['HG19','HAP1','HAP2']:
-        total = junctionCount(self._outDir+'/'+i+'/temp/junction.sam') ## all junction read counts
-        specific = junctionCount(self._outDir+'/'+i+'/temp/junction.specific.sam') ## distinct junction read counts
+        total = self.junctionCount(self._outDir+'/'+i+'/temp/junction.sam') ## all junction read counts
+        specific = self.junctionCount(self._outDir+'/'+i+'/temp/junction.specific.sam') ## distinct junction read counts
         b_fn = open(self._outDir+'/'+i+'/temp/junctions.distinct.bed','w')
         for line in open(self._outDir +'/'+i+'/STARalign/SJ.out.tab'):
             line = line.rstrip()
@@ -261,7 +267,7 @@ class PersonalizeGenome :
 
 ## end of distinctSJOut ##
 
-  def readVCF():
+  def readVCF(self):
     vcf_dict = defaultdict(lambda: defaultdict(str)) # vcf[chrom][pos] = snpid
     for line in open(self._vcf):
         if line.startswith('#'):
@@ -278,7 +284,7 @@ class PersonalizeGenome :
                 vcf_dict[chrom][pos] = snpid
     return vcf_dict
 
-  def hapSpecific(bed_fn,v):
+  def hapSpecific(self,bed_fn,v):
     ## store junctions with >= 2 haplotype specific reads AND a snp in the splice site
     d = defaultdict(list) #d[chr:s:e] = [snpid(s)]
     for line in open(bed_fn):
@@ -298,7 +304,7 @@ class PersonalizeGenome :
                     d[k].append(v[chrom][jE+num])
     return d
 
-  def readGTF():
+  def readGTF(self):
     exon_start = defaultdict(list) #stored exon_start positions. key = chrom, value = list of 3' positions
     exon_end = defaultdict(list) #stores exon end potitions. key = chrom, value = list of 5' positions
 
@@ -315,7 +321,7 @@ class PersonalizeGenome :
     return exon_start,exon_end
 
 
-  def calculateFrequency(specific, fn,gS,gE):
+  def calculateFrequency(self,specific, fn,gS,gE):
     ## calculate specific junction frequencies
     ## specific is list of haplotype specific junctions (chr_start_end_strand)
     ## fn is SJ.out.distinct.tab file
@@ -371,7 +377,7 @@ class PersonalizeGenome :
         f[s] = freq
     return f, overlapping_junctions,overlapping_counts,novel
 
-  def printBed(specific,snpid,freq,novel,o_fn):
+  def printBed(self,specific,snpid,freq,novel,o_fn):
     ## print output ##
     OUT = open(o_fn,'w')
     i = 1
@@ -395,7 +401,7 @@ class PersonalizeGenome :
     return
 ## end of printBed ##
 
-  def haplotypeSpecificJunctions():
+  def haplotypeSpecificJunctions(self):
     ## extract haplotype specific junctions (hap1, hap2, hap1hap2, hg19)
     ## junction files ##
     h1_fn = os.path.join(self._outDir, "HAP1/temp/junctions.distinct.bed")
@@ -403,9 +409,9 @@ class PersonalizeGenome :
     hg_fn = os.path.join(self._outDir, "HG19/temp/junctions.distinct.bed")
     VCF = readVCF()
     ## store junctions with >= 2 haplotype specific reads AND a snp in the splice site
-    h1_j = hapSpecific(h1_fn,VCF)
-    h2_j = hapSpecific(h2_fn,VCF)
-    hg_j = hapSpecific(hg_fn,VCF)
+    h1_j = self.hapSpecific(h1_fn,VCF)
+    h2_j = self.hapSpecific(h2_fn,VCF)
+    hg_j = self.hapSpecific(hg_fn,VCF)
 
     ## get haplotype specific junctions ##
     hap1_specific = [ x for x in h1_j if ((x not in h2_j) and (x not in hg_j))]
@@ -414,13 +420,13 @@ class PersonalizeGenome :
     hg19_specific = [ x for x in hg_j if ((x not in h1_j) and (x not in h2_j))]
 
 
-    gtfStart, gtfEnd = readGTF()
+    gtfStart, gtfEnd = self.readGTF()
 
-    hap1_freq, hap1_oj,hap1_oj_count,hap1_novel = calculateFrequency(hap1_specific, h1_fn, gtfStart, gtfEnd)
-    hap2_freq, hap2_oj,hap2_oj_count,hap2_novel = calculateFrequency(hap2_specific, h2_fn, gtfStart, gtfEnd)
-    hap1hap2_freq1, hap1hap2_oj1,hap1hap2_oj_count1, hap1hap2_novel1 = calculateFrequency(hap1hap2_specific, h1_fn, gtfStart, gtfEnd)
-    hap1hap2_freq2, hap1hap2_oj2,hap1hap2_oj_count2, hap1hap2_novel2 = calculateFrequency(hap1hap2_specific, h2_fn, gtfStart, gtfEnd)
-    hg19_freq, hg19_oj,hg19_oj_count,hg19_novel = calculateFrequency(hg19_specific, hg_fn, gtfStart, gtfEnd)
+    hap1_freq, hap1_oj,hap1_oj_count,hap1_novel = self.calculateFrequency(hap1_specific, h1_fn, gtfStart, gtfEnd)
+    hap2_freq, hap2_oj,hap2_oj_count,hap2_novel = self.calculateFrequency(hap2_specific, h2_fn, gtfStart, gtfEnd)
+    hap1hap2_freq1, hap1hap2_oj1,hap1hap2_oj_count1, hap1hap2_novel1 = self.calculateFrequency(hap1hap2_specific, h1_fn, gtfStart, gtfEnd)
+    hap1hap2_freq2, hap1hap2_oj2,hap1hap2_oj_count2, hap1hap2_novel2 = self.calculateFrequency(hap1hap2_specific, h2_fn, gtfStart, gtfEnd)
+    hg19_freq, hg19_oj,hg19_oj_count,hg19_novel = self.calculateFrequency(hg19_specific, hg_fn, gtfStart, gtfEnd)
 
     hap1hap2_freq = defaultdict(float)
     for j in hap1hap2_freq1:
@@ -431,10 +437,10 @@ class PersonalizeGenome :
     hap1hap2_out = os.path.join(self._outDir,"/hap1hap2.specific.bed")
     hg19_out = os.path.join(self._outDir,"/hg19.specific.bed")
 
-    printBed(hap1_specific,h1_j,hap1_freq,hap1_novel,hap1_out)
-    printBed(hap2_specific,h2_j,hap2_freq,hap2_novel,hap2_out)
-    printBed(hap1hap2_specific,h1_j,hap1hap2_freq,hap1hap2_novel1,hap1hap2_out)
-    printBed(hg19_specific,hg_j,hg19_freq,hg19_novel,hg19_out)
+    self.printBed(hap1_specific,h1_j,hap1_freq,hap1_novel,hap1_out)
+    self.printBed(hap2_specific,h2_j,hap2_freq,hap2_novel,hap2_out)
+    self.printBed(hap1hap2_specific,h1_j,hap1hap2_freq,hap1hap2_novel1,hap1hap2_out)
+    self.printBed(hg19_specific,hg_j,hg19_freq,hg19_novel,hg19_out)
 
     return
 
@@ -519,7 +525,7 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        p.haplotypeSpecificSam()
+        #p.haplotypeSpecificSam()
         p.distinctSJOut()
         p.haplotypeSpecificJunctions()
     else :
