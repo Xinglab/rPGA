@@ -86,9 +86,10 @@ def isHelpString(s):
   return norm == "help" or norm == "--help"
 
 class PersonalizeGenome :
-  def __init__(self, outDir, vcf, ref, hap1Ref, hap2Ref):
+  def __init__(self, outDir, vcf, gtf, ref, hap1Ref, hap2Ref):
     self._outDir = outDir
     self._vcf = vcf
+    self._gtf = gtf
     self._ref = ref
     self._hap1Ref = hap1Ref
     self._hap2Ref = hap2Ref
@@ -164,6 +165,280 @@ class PersonalizeGenome :
     FOUT.close()
     hap2.clear()
 
+  def listToString(x):
+    rVal = '';
+    for a in x:
+      rVal += a + ' ';
+    return rVal;
+
+  def haplotypeSpecificSam(): ## extract haplotype specific sam files
+    ## extract junction reads for hg19, hap1, and hap2
+    oFile = open(str(self._outDir) + "/commands.txt","a")
+
+    for i in ['HG19','HAP1','HAP2']:
+        cmd = 'awk \'$6~"S" {print $1}\' ' + self._outDir + '/' + i + '/STARalign/Aligned.out.sam > '+self._outDir+'/'+i+'/temp/truncatedIDs.txt; '
+        cmd += 'awk \'NR==FNR{a[$1]++;next}; a[$1]<=0 {print $1} \' ' + self._outDir+'/'+i+'/temp/truncatedIDs.txt '+self._outDir+'/'+i+'/STARalign/Aligned.out.sam  > ' + self._outDir+'/'+i+'/temp/mappedIDs.txt'
+        oFile.write('##### getting junction reads for ' + i + '#####\n'+cmd+'\n#\n')
+        oFile.flush()
+        status,output=commands.getstatusoutput(cmd)
+
+
+    ## extract hap1 specific junction reads
+    cmd = 'awk \' NR==FNR{a[$1]++;next}; a[$1]<=0 \' '+hgTemp+'/mappedIDs.txt '+h1Temp+'/mappedIDs.txt > '+h1Temp+'/mappedIDs.specific.txt ;'
+    cmd += 'awk \'NR==FNR{a[$1]++;next}; (a[$1]>0 && $6~"N") \' '+h1Temp +'/mappedIDs.txt '+h1Path+'/STARalign/Aligned.out.sam > '+h1Temp+'/junction.sam ; '
+    cmd += 'awk \'NR==FNR{a[$1]++;next}; (a[$1]>0 && $6~"N") \' '+h1Temp +'/mappedIDs.specific.txt '+h1Path+'/STARalign/Aligned.out.sam > '+h1Temp+'/junction.specific.sam '
+    oFile.write('### getting hap1 specific junction reads ###\n' + cmd + '\n#\n')
+    oFile.flush()
+    status,output=commands.getstatusoutput(cmd)
+
+    ## extract hap2 specific junction reads
+    cmd = 'awk \' NR==FNR{a[$1]++;next}; a[$1]<=0 \' '+hgTemp+'/mappedIDs.txt '+h2Temp+'/mappedIDs.txt > '+h2Temp+'/mappedIDs.specific.txt ;'
+    cmd += 'awk \'NR==FNR{a[$1]++;next}; (a[$1]>0 && $6~"N") \' '+h2Temp +'/mappedIDs.txt '+h2Path+'/STARalign/Aligned.out.sam > '+h2Temp+'/junction.sam; '
+    cmd += 'awk \'NR==FNR{a[$1]++;next}; (a[$1]>0 && $6~"N") \' '+h2Temp +'/mappedIDs.specific.txt '+h2Path+'/STARalign/Aligned.out.sam > '+h2Temp+'/junction.specific.sam '
+    oFile.write('### getting hap2 specific junction reads ###\n' + cmd + '\n#\n')
+    oFile.flush()
+    status,output=commands.getstatusoutput(cmd)
+
+    ## extract hg19 specific junction reads
+    cmd = 'awk \' NR==FNR{a[$1]++;next}; a[$1]<=0 \' '+h1Temp+'/mappedIDs.txt '+hgTemp+'/mappedIDs.txt > '+hgTemp+'/mappedIDs.specific.temp.txt ;'
+    cmd += 'awk \' NR==FNR{a[$1]++;next}; a[$1]<=0 \' '+h2Temp+'/mappedIDs.txt '+hgTemp+'/mappedIDs.specific.temp.txt > '+hgTemp+'/mappedIDs.specific.txt ; '
+    cmd += 'awk \'NR==FNR{a[$1]++;next}; (a[$1]>0 && $6~"N") \' '+hgTemp +'/mappedIDs.txt '+hgPath+'/STARalign/Aligned.out.sam > '+hgTemp+'/junction.sam ; '
+    cmd += 'awk \'NR==FNR{a[$1]++;next}; (a[$1]>0 && $6~"N") \' '+hgTemp +'/mappedIDs.specific.txt '+hgPath+'/STARalign/Aligned.out.sam > '+hgTemp+'/junction.specific.sam '
+    oFile.write('### getting hap2 specific junction reads ###\n' + cmd + '\n#\n')
+    oFile.flush()
+    status,output=commands.getstatusoutput(cmd)
+
+    return
+## end of haplotypeSpecificSam ##
+
+  def junctionCount(sam_fn):
+    ## count number of total and haplotype specific distinct reads that span splice junctions and add to SJ.out files
+    readsMapped = defaultdict(list) # key=junction, value = list of reads mapping to junction(by start pos)
+    nnR = defaultdict(int) #key = junction, value = number of distinct reads mapped to junction
+
+    for line in open(sam_fn):
+        line = line.rstrip()
+        if ((not line.startswith('@')) and ('N' in line.split()[5]) and ('S' not in line.split()[5])):
+            # not a header line, and read contains a junction and no truncation
+            ele = line.split()
+            cigar = ele[5] # format xMyNzM
+            exon_lengths = re.findall(r"(\d+M)",cigar)
+            intron_lengths = re.findall(r"(\d+N)",cigar)
+            pos = int(ele[3]) #read start location
+            # iterate through exons/introns to extract junction coordinates that read spans
+            for index,item in enumerate(intron_lengths):
+                jS = pos + int(exon_lengths[index][:-1])
+                jE = jS + int(intron_lengths[index][:-1]) - 1
+                key = str(ele[2]) + '_' + str(jS) + '_' + str(jE) #chr:start:end
+                readsMapped[key].append(ele[3]) #append read start location
+                pos = jE
+    # end of looping through sam file
+
+    #determine nnR
+    for k in readsMapped.keys():
+        num = len(set(readsMapped[k]))
+        nnR[k] = num
+    return nnR
+
+## end of junctionCount ##
+
+  def distinctSJOut():
+    # count number of distinct reads that align to each junction
+    # count the total distinct and haplotype specific distinct
+    for i in ['HG19','HAP1','HAP2']:
+        total = junctionCount(self._outDir+'/'+i+'/temp/junction.sam') ## all junction read counts
+        specific = junctionCount(self._outDir+'/'+i+'/temp/junction.specific.sam') ## distinct junction read counts
+        b_fn = open(self._outDir+'/'+i+'/temp/junctions.distinct.bed','w')
+        for line in open(self._outDir +'/'+i+'/STARalign/SJ.out.tab'):
+            line = line.rstrip()
+            ele = line.split()
+            chrom = ele[0]
+            jS = ele[1]
+            jE = ele[2]
+            key = chrom + '_' + str(jS) + '_' + str(jE)
+            b_fn.write(line + '\t' + str(total[key]) + '\t' + str(specific[key]) + '\n')
+        b_fn.close()
+
+## end of distinctSJOut ##
+
+  def readVCF():
+    vcf_dict = defaultdict(lambda: defaultdict(str)) # vcf[chrom][pos] = snpid
+    for line in open(self._vcf):
+        if line.startswith('#'):
+            continue # skip header lines
+        elif ('|' in line): #snp is phased
+            ele = line.split()
+            if 'chr' in ele[0]:
+                chrom = ele[0]
+            else:
+                chrom = 'chr' + str(ele[0])
+            pos = int(ele[1])
+            snpid = ele[2]
+            if (ele[4] in ['A','C','G','T']): # alt base is determined
+                vcf_dict[chrom][pos] = snpid
+    return vcf_dict
+
+  def hapSpecific(bed_fn,v):
+    ## store junctions with >= 2 haplotype specific reads AND a snp in the splice site
+    d = defaultdict(list) #d[chr:s:e] = [snpid(s)]
+    for line in open(bed_fn):
+        line = line.rstrip()
+        ele = line.split()
+        if (int(ele[10])>=2): #at least 2 haplotype specific reads span junction
+            chrom = ele[0]
+            jS = int(ele[1])
+            jE = int(ele[2])
+            strand = ele[3]
+            k = chrom + '_' + str(jS) + '_' + str(jE) + '_' + strand
+            for num in range(0,2): #check for SNPs in 5'SS
+                if ((jS + num) in v[chrom]):
+                    d[k].append(v[chrom][jS+num])
+            for num in range(-1,1): # check for SNPs in 3'SS
+                if ((jE + num) in v[chrom]):
+                    d[k].append(v[chrom][jE+num])
+    return d
+
+  def readGTF():
+    exon_start = defaultdict(list) #stored exon_start positions. key = chrom, value = list of 3' positions
+    exon_end = defaultdict(list) #stores exon end potitions. key = chrom, value = list of 5' positions
+
+    for line in open(self._gtf): #for each line
+        if line.startswith('#'): #comment line
+            continue
+        else:
+            if 'exon' in line.split()[2]: #entry is information about an exon
+                chrom = line.split()[0] #chromosome
+                start = int(line.split()[3]) #exon start pos
+                end = int(line.split()[4]) #exon end pos
+                exon_start[chrom].append(start)
+                exon_end[chrom].append(end)
+    return exon_start,exon_end
+
+
+  def calculateFrequency(specific, fn,gS,gE):
+    ## calculate specific junction frequencies
+    ## specific is list of haplotype specific junctions (chr_start_end_strand)
+    ## fn is SJ.out.distinct.tab file
+    ## gS is exon start positions, gE is exon end positions in gtf file
+    f = defaultdict(float) # f[junction] = frequency
+    novel = defaultdict(bool)
+    ## read in SJ.out file ##
+    nR = defaultdict(lambda: defaultdict(dict)) # nR[chrom][start][end] = num_reads
+    for line in open(fn):
+        line = line.rstrip()
+        ele = line.split()
+        chrom = ele[0]
+        jS = ele[1]
+        jE = ele[2]
+        n = int(ele[9])
+        nR[chrom][jS][jE] = n
+
+    for s in specific:
+        j = s.split('_')
+        chrom = j[0]
+        jS = j[1]
+        jE = j[2]
+        strand = j[3]
+        NR=nR[chrom][jS][jE]
+        overlapping_junctions = []
+        overlapping_counts = []
+        novel[s] = True
+
+        for x in nR[chrom]:
+            # x is junction start position
+            if ((int(x)-1) in gE[chrom]): # x in gtf file
+                if (int(x) < int(jS)):
+                    for y in nR[chrom][x]:
+                         if ((int(y)+1) in gS[chrom]): # y is in gtf file
+                             if (int(y) > int(jS)):
+                                 overlapping_junctions.append(chrom+'_'+x+'_'+y)
+                                 overlapping_counts.append(int(nR[chrom][x][y]))
+                elif (int(x)==int(jS)):
+                    for y in nR[chrom][x]:
+                        if ((int(y)==int(jE)) and ((int(y)+1) in gS[chrom])):
+                            novel[s] = False
+                        else:
+                            if ((int(y)+1) in gS[chrom]):
+                                overlapping_junctions.append(chrom+'_'+x+'_'+y)
+                                overlapping_counts.append(int(nR[chrom][x][y]))
+                elif (int(x)<int(jE)):
+                    for y in nR[chrom][x]:
+                        if ((int(y)+1) in gS[chrom]):
+                            overlapping_junctions.append(chrom+'_'+x+'_'+y)
+                            overlapping_counts.append(int(nR[chrom][x][y]))
+
+        freq = NR/float(NR + sum(overlapping_counts))
+        f[s] = freq
+    return f, overlapping_junctions,overlapping_counts,novel
+
+  def printBed(specific,snpid,freq,novel,o_fn):
+    ## print output ##
+    OUT = open(o_fn,'w')
+    i = 1
+    OUT.write('#chrom\tstart\tend\tname_SNPid_novel\tfrequency\tstrand\n')
+    for j in sorted(specific):
+        chrom = j.split('_')[0]
+        jS = j.split('_')[1]
+        jE = j.split('_')[2]
+        strand = j.split('_')[3]
+        if strand==1:
+            strand = '+'
+        else:
+            strand = '-'
+        s = ','.join(snpid[j])
+        f = freq[j]
+        n = novel[j]
+        name = 'J'+str(i)+'_'+s+'_'+str(n)
+
+        OUT.write(chrom+'\t'+jS+'\t'+jE+'\t'+name+'\t'+str(f)+'\t'+strand+'\n')
+
+    return
+## end of printBed ##
+
+  def haplotypeSpecificJunctions():
+    ## extract haplotype specific junctions (hap1, hap2, hap1hap2, hg19)
+    ## junction files ##
+    h1_fn = os.path.join(self._outDir, "HAP1/temp/junctions.distinct.bed")
+    h2_fn = os.path.join(self._outDir, "HAP2/temp/junctions.distinct.bed")
+    hg_fn = os.path.join(self._outDir, "HG19/temp/junctions.distinct.bed")
+    VCF = readVCF()
+    ## store junctions with >= 2 haplotype specific reads AND a snp in the splice site
+    h1_j = hapSpecific(h1_fn,VCF)
+    h2_j = hapSpecific(h2_fn,VCF)
+    hg_j = hapSpecific(hg_fn,VCF)
+
+    ## get haplotype specific junctions ##
+    hap1_specific = [ x for x in h1_j if ((x not in h2_j) and (x not in hg_j))]
+    hap2_specific = [ x for x in h2_j if ((x not in h1_j) and (x not in hg_j))]
+    hap1hap2_specific = [ x for x in h1_j if ((x in h2_j) and (x not in hg_j))]
+    hg19_specific = [ x for x in hg_j if ((x not in h1_j) and (x not in h2_j))]
+
+
+    gtfStart, gtfEnd = readGTF()
+
+    hap1_freq, hap1_oj,hap1_oj_count,hap1_novel = calculateFrequency(hap1_specific, h1_fn, gtfStart, gtfEnd)
+    hap2_freq, hap2_oj,hap2_oj_count,hap2_novel = calculateFrequency(hap2_specific, h2_fn, gtfStart, gtfEnd)
+    hap1hap2_freq1, hap1hap2_oj1,hap1hap2_oj_count1, hap1hap2_novel1 = calculateFrequency(hap1hap2_specific, h1_fn, gtfStart, gtfEnd)
+    hap1hap2_freq2, hap1hap2_oj2,hap1hap2_oj_count2, hap1hap2_novel2 = calculateFrequency(hap1hap2_specific, h2_fn, gtfStart, gtfEnd)
+    hg19_freq, hg19_oj,hg19_oj_count,hg19_novel = calculateFrequency(hg19_specific, hg_fn, gtfStart, gtfEnd)
+
+    hap1hap2_freq = defaultdict(float)
+    for j in hap1hap2_freq1:
+        hap1hap2_freq[j] = (hap1hap2_freq1[j] + hap1hap2_freq2[j])/2
+
+    hap1_out = os.path.join(self._outDir,"/hap1.specific.bed")
+    hap2_out = os.path.join(self._outDir,"/hap2.specific.bed")
+    hap1hap2_out = os.path.join(self._outDir,"/hap1hap2.specific.bed")
+    hg19_out = os.path.join(self._outDir,"/hg19.specific.bed")
+
+    printBed(hap1_specific,h1_j,hap1_freq,hap1_novel,hap1_out)
+    printBed(hap2_specific,h2_j,hap2_freq,hap2_novel,hap2_out)
+    printBed(hap1hap2_specific,h1_j,hap1hap2_freq,hap1hap2_novel1,hap1hap2_out)
+    printBed(hg19_specific,hg_j,hg19_freq,hg19_novel,hg19_out)
+
+    return
+
+
 ### end of personalizing genome ###
 def isHelpString(s) :
   norm = s.strip().lower()
@@ -210,10 +485,12 @@ def main(args) :
     command = args[0].strip().lower()
     outDir = open(".rPGAProject.yaml").readline().rstrip()
     vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+    gtf = open(".rPGAJunctions.yaml").readline().rstrip()
     ref = open(".rPGAGenome.yaml").readline().rstrip()
     seqs = open(".rPGASeqs.yaml")
     hap1Ref = os.path.join(outDir, "hap1.fa")
     hap2Ref = os.path.join(outDir, "hap2.fa")
+    p = PersonalizeGenome(outDir, vcf, ref, gtf, hap1Ref, hap2Ref)
     if command == "personalize" :
       if args[0].strip().lower() == "help" :
         print "Help"
@@ -221,8 +498,10 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref)
         p.personalizeGenome()
+        STAR_create_genome(outDir, ref, "HG19")
+        STAR_create_genome(outDir, hap1Ref, "HAP1")
+        STAR_create_genome(outDir, hap2Ref, "HAP2")
     elif command == "mapping" :
       if args[0].strip().lower() == "help" :
         print "Help"
@@ -230,9 +509,6 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        STAR_create_genome(outDir, ref, "HG19")
-        STAR_create_genome(outDir, hap1Ref, "HAP1")
-        STAR_create_genome(outDir, hap2Ref, "HAP2")
         STAR_perform_mapping(outDir, "HG19", seqs)
         STAR_perform_mapping(outDir, "HAP1", seqs)
         STAR_perform_mapping(outDir, "HAP2", seqs)
@@ -242,8 +518,10 @@ def main(args) :
       elif len(args) != 1 :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
-#      else :
-#        genome = settings(args[1])
+      else :
+        p.haplotypeSpecificSam()
+        p.distinctSJOut()
+        p.haplotypeSpecificJunctions()
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
       sys.stderr.write(helpStr + "\n\n")

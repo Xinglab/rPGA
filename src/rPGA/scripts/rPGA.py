@@ -34,16 +34,14 @@ def main() :
   """
   if sys.argv[1] == "init" :
     init.main(sys.argv[2:])
-    genomes.main("Help")
   elif sys.argv[1] == "genomes" :
     genomes.main(sys.argv[2:])
-    genotype.main("Help")
   elif sys.argv[1] == "genotype" :
     genotype.main(sys.argv[2:])
-    seqs.main("Help")
+  elif sys.argv[1] == "junctions" :
+    junctions.main(sys.argv[2:])
   elif sys.argv[1] == "sequences" :
     seqs.main(sys.argv[2:])
-    running.main("Help")
   elif sys.argv[1] == "run" :
     running.main(sys.argv[2:])
   else :
