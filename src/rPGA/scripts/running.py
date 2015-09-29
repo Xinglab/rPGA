@@ -39,16 +39,23 @@ def STAR_create_genome(project, genome, gnme):
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
 
-  print commandSTAR
+  oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
+  oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
+              commandSTAR + "\n#\n")
+  oFile.flush()
+  oFILE.close()
+  status,output=commands.getstatusoutput(commandSTAR)
+
+  return
 
   # fire off the sub-process
-  processSTAR = subprocess.Popen(commandSTAR, shell=True,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, env=env_cpy)
+#  processSTAR = subprocess.Popen(commandSTAR, shell=True,
+#                                   stdout=subprocess.PIPE,
+#                                   stderr=subprocess.PIPE, env=env_cpy)
 
-  processSTAR.communicate()
+#  processSTAR.communicate()
 
-  return processSTAR.wait()
+#  return processSTAR.wait()
 
 def STAR_perform_mapping(project, gnme, seqs):
 
@@ -65,17 +72,23 @@ def STAR_perform_mapping(project, gnme, seqs):
 
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
+  oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
+  oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
+              commandSTAR + "\n#\n")
+  oFile.flush()
+  oFILE.close()
+  status,output=commands.getstatusoutput(commandSTAR)
 
-  print commandSTAR
+  return
 
   # fire off the sub-process
-  processSTAR = subprocess.Popen(commandSTAR, shell=True,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, env=env_cpy)
+#  processSTAR = subprocess.Popen(commandSTAR, shell=True,
+#                                   stdout=subprocess.PIPE,
+#                                   stderr=subprocess.PIPE, env=env_cpy)
 
-  processSTAR.communicate()
+#  processSTAR.communicate()
 
-  return processSTAR.wait()
+#  return processSTAR.wait()
 
 ################################################################################
 #             PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                 #
@@ -92,7 +105,7 @@ class PersonalizeGenome :
 
   def readReference(self):
     # read in hg19 reference file
-    chroms = defaultdict(lambda: defaultdict(list)) #chroms[chrom] = [chromosome sequence]
+    chroms = defaultdict(lambda: defaultdict(list))
     ref_in = open(self._ref)
     for line in ref_in:
         if line[:1] ==">":
@@ -169,7 +182,7 @@ class PersonalizeGenome :
 
   def haplotypeSpecificSam(self): ## extract haplotype specific sam files
     ## extract junction reads for hg19, hap1, and hap2
-    oFile = open(str(self._outDir) + "/commands.txt","a")
+    oFile = open(str(self._outDir) + "/commands.sh","a")
     hgPath = str(self._outDir) + "/HG19"
     h1Path = str(self._outDir) + "/HAP1"
     h2Path = str(self._outDir) + "/HAP2"
