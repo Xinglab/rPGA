@@ -76,7 +76,7 @@ def STAR_create_genome(self, gnme):
     oFILE.close()
     status,output=commands.getstatusoutput(commandSTAR)
 
-    return
+    return 1
 
 #    fire off the sub-process
 #    processSTAR = subprocess.Popen(commandSTAR, shell=True,
@@ -109,7 +109,7 @@ def STAR_create_genome(self, gnme):
     oFILE.close()
     status,output=commands.getstatusoutput(commandSTAR)
 
-    return
+    return 1
 
 #    fire off the sub-process
 #    processSTAR = subprocess.Popen(commandSTAR, shell=True,
