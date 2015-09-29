@@ -81,10 +81,6 @@ def STAR_perform_mapping(project, gnme, seqs):
 #             PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                 #
 ################################################################################
 
-def isHelpString(s):
-  norm = s.strip().lower()
-  return norm == "help" or norm == "--help"
-
 class PersonalizeGenome :
   def __init__(self, outDir, vcf, gtf, ref, hap1Ref, hap2Ref):
     self._outDir = outDir
