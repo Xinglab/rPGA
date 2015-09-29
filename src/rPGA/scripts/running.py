@@ -403,7 +403,7 @@ class PersonalizeGenome :
     h1_fn = os.path.join(self._outDir, "HAP1/temp/junctions.distinct.bed")
     h2_fn = os.path.join(self._outDir, "HAP2/temp/junctions.distinct.bed")
     hg_fn = os.path.join(self._outDir, "HG19/temp/junctions.distinct.bed")
-    VCF = readVCF()
+    VCF = self.readVCF()
     ## store junctions with >= 2 haplotype specific reads AND a snp in the splice site
     h1_j = self.hapSpecific(h1_fn,VCF)
     h2_j = self.hapSpecific(h2_fn,VCF)
@@ -522,7 +522,7 @@ def main(args) :
         sys.exit()
       else :
         #p.haplotypeSpecificSam()
-        p.distinctSJOut()
+        #p.distinctSJOut()
         p.haplotypeSpecificJunctions()
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
