@@ -534,8 +534,8 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        #p.haplotypeSpecificSam()
-        #p.distinctSJOut()
+        p.haplotypeSpecificSam()
+        p.distinctSJOut()
         p.haplotypeSpecificJunctions()
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
