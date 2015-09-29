@@ -490,7 +490,7 @@ def main(args) :
     seqs = open(".rPGASeqs.yaml")
     hap1Ref = os.path.join(outDir, "hap1.fa")
     hap2Ref = os.path.join(outDir, "hap2.fa")
-    p = PersonalizeGenome(outDir, vcf, ref, gtf, hap1Ref, hap2Ref)
+    p = PersonalizeGenome(outDir, vcf, gtf, ref, hap1Ref, hap2Ref)
     if command == "personalize" :
       if args[0].strip().lower() == "help" :
         print "Help"
