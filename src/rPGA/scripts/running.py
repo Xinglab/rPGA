@@ -27,68 +27,7 @@ from collections import defaultdict
 ##            PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                ##
 ################################################################################
 
-def STAR_create_genome(project, genome, gnme):
 
-  # build up options
-  opts = ""
-  opts += (" --runMode genomeGenerate")  # not tracked; magic number
-  opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex")
-  opts += (" --genomeFastaFiles " + str(genome))  # not tracked; magic number
-  opts += (" --runThreadN 8")      # not tracked; magic number
-
-  env_cpy = os.environ.copy()
-  commandSTAR = ("STAR" + " " + opts)
-
-  oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
-  oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
-              commandSTAR + "\n#\n")
-  oFile.flush()
-  oFILE.close()
-  status,output=commands.getstatusoutput(commandSTAR)
-
-  return
-
-  # fire off the sub-process
-#  processSTAR = subprocess.Popen(commandSTAR, shell=True,
-#                                   stdout=subprocess.PIPE,
-#                                   stderr=subprocess.PIPE, env=env_cpy)
-
-#  processSTAR.communicate()
-
-#  return processSTAR.wait()
-
-def STAR_perform_mapping(project, gnme, seqs):
-
-  # build up options
-  opts = ""
-  opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex")
-  opts += (" --readFilesIn " +  str(seqs))
-  opts += (" --runThreadN 8 --outFilterMultimapNmax 20")
-  opts += (" --outFilterMismatchNmax 0")
-  opts += (" --outFileNamePrefix " + str(project))
-  opts += ("/" + str(gnme) + "/" + "STARalign ")
-  opts += ("--outFilterType BySJout --outFilterIntronMotifs RemoveNoncanonical")
-  opts += (" --alignIntronMax 300000 --outSJfilterOverhangMin -1 8 8 8")
-
-  env_cpy = os.environ.copy()
-  commandSTAR = ("STAR" + " " + opts)
-  oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
-  oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
-              commandSTAR + "\n#\n")
-  oFile.flush()
-  oFILE.close()
-  status,output=commands.getstatusoutput(commandSTAR)
-
-  return
-
-  # fire off the sub-process
-#  processSTAR = subprocess.Popen(commandSTAR, shell=True,
-#                                   stdout=subprocess.PIPE,
-#                                   stderr=subprocess.PIPE, env=env_cpy)
-
-#  processSTAR.communicate()
-
-#  return processSTAR.wait()
 
 ################################################################################
 #             PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                 #
@@ -117,6 +56,69 @@ class PersonalizeGenome :
                 chroms[key].append(base)
     ref_in.close()
     return chroms
+
+def STAR_create_genome(self, gnme):
+
+  # build up options
+    opts = ""
+    opts += (" --runMode genomeGenerate")  # not tracked; magic number
+    opts += (" --genomeDir " + str(self._outDir) + "/" + str(gnme) + "/" + "STARindex")
+    opts += (" --genomeFastaFiles " + str(self._ref))  # not tracked; magic number
+    opts += (" --runThreadN 8")      # not tracked; magic number
+
+    env_cpy = os.environ.copy()
+    commandSTAR = ("STAR" + " " + opts)
+
+    oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
+    oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
+                commandSTAR + "\n#\n")
+    oFile.flush()
+    oFILE.close()
+    status,output=commands.getstatusoutput(commandSTAR)
+
+    return
+
+#    fire off the sub-process
+#    processSTAR = subprocess.Popen(commandSTAR, shell=True,
+#                                   stdout=subprocess.PIPE,
+#                                   stderr=subprocess.PIPE, env=env_cpy)
+
+#  processSTAR.communicate()
+
+#  return processSTAR.wait()
+
+  def STAR_perform_mapping(self, gnme, seqs):
+
+    # build up options
+    opts = ""
+    opts += (" --genomeDir " + str(self._outDir) + "/" + str(gnme) + "/" + "STARindex")
+    opts += (" --readFilesIn " +  str(seqs))
+    opts += (" --runThreadN 8 --outFilterMultimapNmax 20")
+    opts += (" --outFilterMismatchNmax 0")
+    opts += (" --outFileNamePrefix " + str(self._outDir))
+    opts += ("/" + str(gnme) + "/" + "STARalign ")
+    opts += ("--outFilterType BySJout --outFilterIntronMotifs RemoveNoncanonical")
+    opts += (" --alignIntronMax 300000 --outSJfilterOverhangMin -1 8 8 8")
+
+    env_cpy = os.environ.copy()
+    commandSTAR = ("STAR" + " " + opts)
+    oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
+    oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
+                commandSTAR + "\n#\n")
+    oFile.flush()
+    oFILE.close()
+    status,output=commands.getstatusoutput(commandSTAR)
+
+    return
+
+#    fire off the sub-process
+#    processSTAR = subprocess.Popen(commandSTAR, shell=True,
+#                                   stdout=subprocess.PIPE,
+#                                   stderr=subprocess.PIPE, env=env_cpy)
+
+#    processSTAR.communicate()
+
+#    return processSTAR.wait()
 
 
   def personalizeGenome(self): ## personalize reference genome
@@ -514,9 +516,9 @@ def main(args) :
         sys.exit()
       else :
         p.personalizeGenome()
-        STAR_create_genome(outDir, ref, "HG19")
-        STAR_create_genome(outDir, hap1Ref, "HAP1")
-        STAR_create_genome(outDir, hap2Ref, "HAP2")
+        p.STAR_create_genome("HG19")
+        p.STAR_create_genome("HAP1")
+        p.STAR_create_genome("HAP2")
     elif command == "mapping" :
       if args[0].strip().lower() == "help" :
         print "Help"
@@ -524,9 +526,9 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        STAR_perform_mapping(outDir, "HG19", seqs)
-        STAR_perform_mapping(outDir, "HAP1", seqs)
-        STAR_perform_mapping(outDir, "HAP2", seqs)
+        p.STAR_perform_mapping("HG19", seqs)
+        p.STAR_perform_mapping("HAP1", seqs)
+        p.STAR_perform_mapping("HAP2", seqs)
     elif command == "discover" :
       if args[0].strip().lower() == "help" :
         print "Help"
