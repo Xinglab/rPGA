@@ -383,7 +383,7 @@ class PersonalizeGenome :
         jS = j.split('_')[1]
         jE = j.split('_')[2]
         strand = j.split('_')[3]
-        if strand==1:
+        if strand=="1":
             strand = '+'
         else:
             strand = '-'
