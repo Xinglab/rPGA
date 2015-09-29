@@ -428,10 +428,10 @@ class PersonalizeGenome :
     for j in hap1hap2_freq1:
         hap1hap2_freq[j] = (hap1hap2_freq1[j] + hap1hap2_freq2[j])/2
 
-    hap1_out = os.path.join(self._outDir,"/hap1.specific.bed")
-    hap2_out = os.path.join(self._outDir,"/hap2.specific.bed")
-    hap1hap2_out = os.path.join(self._outDir,"/hap1hap2.specific.bed")
-    hg19_out = os.path.join(self._outDir,"/hg19.specific.bed")
+    hap1_out = os.path.join(self._outDir,"hap1.specific.bed")
+    hap2_out = os.path.join(self._outDir,"hap2.specific.bed")
+    hap1hap2_out = os.path.join(self._outDir,"hap1hap2.specific.bed")
+    hg19_out = os.path.join(self._outDir,"hg19.specific.bed")
 
     self.printBed(hap1_specific,h1_j,hap1_freq,hap1_novel,hap1_out)
     self.printBed(hap2_specific,h2_j,hap2_freq,hap2_novel,hap2_out)
