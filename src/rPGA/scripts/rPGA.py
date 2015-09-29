@@ -22,6 +22,7 @@ import sys, os
 import init
 import genomes
 import genotype
+import junctions
 import seqs
 import running
 
