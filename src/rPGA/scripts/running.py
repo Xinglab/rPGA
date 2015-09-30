@@ -57,7 +57,7 @@ class PersonalizeGenome :
     ref_in.close()
     return chroms
 
-def STAR_create_genome(self, gnme):
+  def STAR_create_genome(self, gnme):
 
   # build up options
     opts = ""
