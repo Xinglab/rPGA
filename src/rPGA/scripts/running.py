@@ -73,7 +73,7 @@ class PersonalizeGenome :
     oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
                 commandSTAR + "\n#\n")
     oFile.flush()
-    oFILE.close()
+    oFile.close()
     status,output=commands.getstatusoutput(commandSTAR)
 
     return 1
@@ -106,7 +106,7 @@ class PersonalizeGenome :
     oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
                 commandSTAR + "\n#\n")
     oFile.flush()
-    oFILE.close()
+    oFile.close()
     status,output=commands.getstatusoutput(commandSTAR)
 
     return 1
