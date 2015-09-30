@@ -1,8 +1,8 @@
 rPGA (RNA-seq Personal Genome Aligner)
 =======
 
-rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping  
-personal transcriptomes to personal genomes .
+rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
+personal transcriptomes to personal genomes.
 
 Requirements
 ------------
@@ -10,10 +10,7 @@ Requirements
 rPGA is intended to be used in a Unix-based environment. It has been tested
 on Mac OS and Linux.
 
-A working installation of Python is required. In addition, rPGA requires the
-following python packages: . These should be
-installed automatically when you install the rPGA package, if you don't
-already have them.
+A working installation of Python is required.
 
 rPGA makes use of several external software packages, these are: STAR.
 These must be installed. By default, rPGA expects them to be somewhere in your
