@@ -1,4 +1,4 @@
-rPGA (RNA-seq Personal Genome Aligner)
+rPGA (RNA-seq Personal Genome-alignment Analysis)
 =======
 
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
