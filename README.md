@@ -1,5 +1,4 @@
-rPGA:
-=======
+rPGA:\
 RNA-seq Personal Genome-alignment Analysis
 =======
 
