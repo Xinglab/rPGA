@@ -13,6 +13,36 @@
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
 personal transcriptomes to personal genomes.
 
+Overview
+------------
+    ________________           ____________________
+   (Reference Genome)         (Genotype Information)  
+           |____________________________|
+                _________|_________
+               |  Personal Genome  |
+                         |
+-------------------------|------------------------------------------------------
+                         |
+                     ____|____           _______________
+                    |   STAR  | <------ (Sequenced Reads)
+          _______________|_______________
+     ____|____       ____|____       ____|____
+    (Reference)     (  Hap 1  )     (  Hap 2  )
+    (Alignment)     (Alignment)     (Alignment)
+         |_______________|_______________|
+                         |
+-------------------------|------------------------------------------------------
+        _________________|___________________
+       | - Discover Personal Splice junctions|          ______________________
+       | - Calculate Usage Frequencies       | <------ (Known Splice Junctions)
+       | - Compare to Known Splice Junctions |
+                         |
+        _________________|_________________
+   ____|____   ____|____   ____|____   ____|____
+  |  Hap 1  | |  Hap 2  | |Hap 1 & 2| |Reference|
+  |Specific | |Specific | |Specific | |Specific |
+  |Junctions| |Junctions| |Junctions| |Junctions|
+
 Requirements
 ------------
 
