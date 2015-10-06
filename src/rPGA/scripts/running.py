@@ -540,4 +540,3 @@ def main(args) :
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
       sys.stderr.write(helpStr + "\n\n")
-
