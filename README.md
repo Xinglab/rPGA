@@ -1,13 +1,13 @@
 ##rPGA: RNA-seq Personal Genome-alignment Analyzer
 
-                                 ____  _________
-                           _____/ __ \/ ____/   |
-                          / ___/ /_/ / / __/ /| |
-                         / /  / ____/ /_/ / ___ |
-                        /_/  /_/    \____/_/  |_|
-                    *********************************
-                    *            V 0.0.1            *
-                    *********************************
+                                               ____  _________
+                                         _____/ __ \/ ____/   |
+                                        / ___/ /_/ / / __/ /| |
+                                       / /  / ____/ /_/ / ___ |
+                                      /_/  /_/    \____/_/  |_|
+                                  *********************************
+                                  *            V 0.0.1            *
+                                  *********************************
 
 
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
@@ -81,7 +81,7 @@ Usage
 Before you can begin working on a project with rPGA, you need to initialize the
 project directory. To do this, run:
 
-$ rPGA init project_name
+    $ rPGA init project_name
 
 For each genome, rPGA needs to know where to find A fasta file with the full
 genome, one chromosome per sequence. To add a genome called hg19, where $ is
@@ -91,30 +91,31 @@ http://hgdownload.cse.ucsc.edu/downloads.html.
 Concatenate all the files from the different chromosome into one single file.
 For example
 
-$ cat \*.fa > ~/rPGAGenomes/hg19/hg19.fa
+    $ cat \*.fa > ~/rPGAGenomes/hg19/hg19.fa
 
 and then run:
-$ rPGA genomes add /path/to/genome
+
+    $ rPGA genomes add /path/to/genome
 
 For any individual, rPGA needs to know where to find a vcf file with the
 genotype. To add a genotype called hg19, where $ is your prompt:
 
-$ rPGA genotype add /path/to/genotype
+    $ rPGA genotype add /path/to/genotype
 
 At this step rPGA is ready to make the personalized genome. To do this run this
 command:
 
-$ rPGA run personalize
+    $ rPGA run personalize
 
 The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. To do this, first rPGA needs to know where to find the
 sequenced reads. To add the sequence files run:
 
-$rPGA sequences add /path/to/sequences
+    $rPGA sequences add /path/to/sequences
 
 Then you can run:
 
-$ rPGA run mapping
+    $ rPGA run mapping
 
 to perform the mapping. Please note that we chose STAR for faster alignment, but
 that obviously comes at a cost, and that is the required memory. Make sure you
@@ -125,11 +126,11 @@ After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
 know splice junctions, you can run:
 
-$rPGA junctions add /path/to/known_splice_junctions
+    $rPGA junctions add /path/to/known_splice_junctions
 
 Finally, rPGA is ready to discover novel splice junctions. To do this run:
 
-$rPGA run discover
+    $rPGA run discover
 
 Enjoy!
 
