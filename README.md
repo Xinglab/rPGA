@@ -143,7 +143,12 @@ The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. To do this, first rPGA needs to know where to find the
 sequenced reads. To add the sequence files run:
 
-    $rPGA sequences add /path/to/sequences
+    $ rPGA sequences add /path/to/sequences.fastq
+
+If you have paired end data add the sequences in one line right after each 
+other, for example:
+
+    $ rPGA sequences add /path/to/sequences_mate_1.fastq /path/to/sequences_mate_2.fastq
 
 Then you can run:
 
@@ -158,11 +163,11 @@ After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
 know splice junctions, you can run:
 
-    $rPGA junctions add /path/to/known_splice_junctions
+    $ rPGA junctions add /path/to/known_splice_junctions
 
 Finally, rPGA is ready to discover novel splice junctions. To do this run:
 
-    $rPGA run discover
+    $ rPGA run discover
 
 Enjoy!
 
