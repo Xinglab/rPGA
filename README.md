@@ -53,7 +53,7 @@ on Mac OS and Linux.
 
 A working installation of Python is required.
 
-rPGA makes use of the STAR software package for alignment. 
+rPGA makes use of the STAR software package for alignment.
 STAR must be installed. By default, rPGA expects them to be somewhere in your
 path, but you if they are not you can specify their locations when running the
 configure script (see below).
@@ -117,7 +117,9 @@ project directory. To do this, run:
 
 For each genome, rPGA needs to know where to find A fasta file with the full
 genome, one chromosome per sequence. To add a genome called hg19, where $ is
-your prompt: Download the reference sequences for the species from
+your prompt:
+
+Download the reference sequences for the species from
 http://hgdownload.cse.ucsc.edu/downloads.html.
 
 Concatenate all the files from the different chromosome into one single file.
@@ -130,7 +132,13 @@ and then run:
     $ rPGA genomes add /path/to/genome
 
 For any individual, rPGA needs to know where to find a vcf file with the
-genotype. To add a genotype called hg19, where $ is your prompt:
+genotype. vcf files with multiple samples, such as the 1000 Genomes vcf files,  must be split it into separate files for each individual. This is easily done using bcftools, which can be downloaded from https://github.com/samtools/bcftools/wiki/HOWTOs. To add a genotype, where $ is your prompt:
+
+First extract the individual genotype, if necessary:
+
+    $ bcftools view -s sample_name -v snps -p /path/to/ALL.genotypes.vcf > sample.genotype.vcf
+
+and then run:
 
     $ rPGA genotype add /path/to/genotype
 
@@ -145,7 +153,7 @@ sequenced reads. To add the sequence files run:
 
     $ rPGA sequences add /path/to/sequences.fastq
 
-If you have paired end data add the sequences in one line right after each 
+If you have paired end data add the sequences in one line right after each
 other, for example:
 
     $ rPGA sequences add /path/to/sequences_mate_1.fastq /path/to/sequences_mate_2.fastq
