@@ -53,8 +53,8 @@ on Mac OS and Linux.
 
 A working installation of Python is required.
 
-rPGA makes use of several external software packages, these are: STAR.
-These must be installed. By default, rPGA expects them to be somewhere in your
+rPGA makes use of the STAR software package for alignment. 
+STAR must be installed. By default, rPGA expects them to be somewhere in your
 path, but you if they are not you can specify their locations when running the
 configure script (see below).
 
