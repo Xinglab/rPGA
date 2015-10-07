@@ -499,13 +499,12 @@ def main(args) :
   else :
     command = args[0].strip().lower()
     outDir = open(".rPGAProject.yaml").readline().rstrip()
-    vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-    gtf = open(".rPGAJunctions.yaml").readline().rstrip()
-    ref = open(".rPGAGenome.yaml").readline().rstrip()
-    seqs = open(".rPGASeqs.yaml")
     hap1Ref = os.path.join(outDir, "hap1.fa")
     hap2Ref = os.path.join(outDir, "hap2.fa")
-    p = PersonalizeGenome(outDir, vcf, gtf, ref, hap1Ref, hap2Ref)
+    vcf = ""
+    gtf = ""
+    ref = ""
+    seqs = ""
     if command == "personalize" :
       if args[0].strip().lower() == "help" :
         print "Help"
@@ -513,6 +512,9 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
+        ref = open(".rPGAGenome.yaml").readline().rstrip()
+        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+        p = PersonalizeGenome(outDir, vcf, gtf, ref, hap1Ref, hap2Ref)
         p.personalizeGenome()
         STAR_create_genome(outDir, ref, "HG19")
         STAR_create_genome(outDir, hap1Ref, "HAP1")
@@ -524,6 +526,7 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
+        seqs = open(".rPGASeqs.yaml")
         STAR_perform_mapping(outDir, "HG19", seqs)
         STAR_perform_mapping(outDir, "HAP1", seqs)
         STAR_perform_mapping(outDir, "HAP2", seqs)
@@ -534,8 +537,13 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        #p.haplotypeSpecificSam()
-        #p.distinctSJOut()
+        ref = open(".rPGAGenome.yaml").readline().rstrip()
+        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+        seqs = open(".rPGASeqs.yaml")
+        gtf = open(".rPGAJunctions.yaml").readline().rstrip()
+        p = PersonalizeGenome(outDir, vcf, gtf, ref, hap1Ref, hap2Ref)
+        p.haplotypeSpecificSam()
+        p.distinctSJOut()
         p.haplotypeSpecificJunctions()
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
