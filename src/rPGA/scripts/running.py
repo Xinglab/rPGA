@@ -39,11 +39,11 @@ def STAR_create_genome(project, genome, gnme):
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
 
-  oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
+  oFile = open(str(project) + "/mapping_commands.sh","w")
   oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
               commandSTAR + "\n#\n")
   oFile.flush()
-  oFILE.close()
+  oFile.close()
   status,output=commands.getstatusoutput(commandSTAR)
 
   return
@@ -61,8 +61,10 @@ def STAR_perform_mapping(project, gnme, seqs):
 
   # build up options
   opts = ""
-  opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex")
-  opts += (" --readFilesIn " +  str(seqs))
+  opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex --readFilesIn ")
+  for line in open(seqs) :
+    line = line.rstrip()
+    opts += (str(line) + " ")
   opts += (" --runThreadN 8 --outFilterMultimapNmax 20")
   opts += (" --outFilterMismatchNmax 0")
   opts += (" --outFileNamePrefix " + str(project))
@@ -72,11 +74,11 @@ def STAR_perform_mapping(project, gnme, seqs):
 
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
-  oFile = open(str(self._outDir) + "/mapping_commands.sh","w")
+  oFile = open(str(project) + "/mapping_commands.sh","w")
   oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
               commandSTAR + "\n#\n")
   oFile.flush()
-  oFILE.close()
+  oFile.close()
   status,output=commands.getstatusoutput(commandSTAR)
 
   return
@@ -526,7 +528,7 @@ def main(args) :
         sys.stderr.write("Genome file is not correct\n")
         sys.exit()
       else :
-        seqs = open(".rPGASeqs.yaml")
+        seqs = ".rPGASeqs.yaml"
         STAR_perform_mapping(outDir, "HG19", seqs)
         STAR_perform_mapping(outDir, "HAP1", seqs)
         STAR_perform_mapping(outDir, "HAP2", seqs)
@@ -539,7 +541,7 @@ def main(args) :
       else :
         ref = open(".rPGAGenome.yaml").readline().rstrip()
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-        seqs = open(".rPGASeqs.yaml")
+        seqs = ".rPGASeqs.yaml"
         gtf = open(".rPGAJunctions.yaml").readline().rstrip()
         p = PersonalizeGenome(outDir, vcf, gtf, ref, hap1Ref, hap2Ref)
         p.haplotypeSpecificSam()
