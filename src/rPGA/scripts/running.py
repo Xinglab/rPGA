@@ -193,8 +193,7 @@ class PersonalizeGenome :
     h2Temp = str(self._outDir) + "/HAP2/temp"
 
     for i in ['HG19','HAP1','HAP2']:
-        cmd = 'awk \'$6~"S" {print $1}\' ' + self._outDir + '/' + i + '/STARalign/Aligned.out.sam > '+self._outDir+'/'+i+'/temp/truncatedIDs.txt; '
-        cmd += 'awk \'NR==FNR{a[$1]++;next}; a[$1]<=0 {print $1} \' ' + self._outDir+'/'+i+'/temp/truncatedIDs.txt '+self._outDir+'/'+i+'/STARalign/Aligned.out.sam  > ' + self._outDir+'/'+i+'/temp/mappedIDs.txt'
+        cmd = 'awk \'$6!~"S" {print $1}\' ' + self._outDir + '/' + i + '/STARalign/Aligned.out.sam | uniq -d > '+self._outDir+'/'+i+'/temp/mappedIDs.txt '
         oFile.write('##### getting junction reads for ' + i + '#####\n'+cmd+'\n#\n')
         oFile.flush()
         status,output=commands.getstatusoutput(cmd)
@@ -391,9 +390,10 @@ class PersonalizeGenome :
   def printBed(self,specific,snpid,freq,novel,o_fn):
     ## print output ##
     OUT = open(o_fn,'w')
-    i = 1
+    i = 0
     OUT.write('#chrom\tstart\tend\tname_SNPid_novel\tfrequency\tstrand\n')
     for j in sorted(specific):
+        i = i + 1
         chrom = j.split('_')[0]
         jS = j.split('_')[1]
         jE = j.split('_')[2]
