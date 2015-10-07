@@ -132,11 +132,17 @@ and then run:
     $ rPGA genomes add /path/to/genome
 
 For any individual, rPGA needs to know where to find a vcf file with the
-genotype. vcf files with multiple samples, such as the 1000 Genomes vcf files,  must be split it into separate files for each individual. This is easily done using bcftools, which can be downloaded from https://github.com/samtools/bcftools/wiki/HOWTOs. To add a genotype, where $ is your prompt:
+genotype. vcf files with multiple samples, such as the 1000 Genomes vcf files,
+must be split it into separate files for each individual. This is easily done
+using bcftools, which can be downloaded from
+https://github.com/samtools/bcftools/wiki/HOWTOs.
+
+To add a genotype, where $ is your prompt:
 
 First extract the individual genotype, if necessary:
 
-    $ bcftools view -s sample_name -v snps -p /path/to/ALL.genotypes.vcf > sample.genotype.vcf
+    $ bcftools view -s sample_name -v snps -p /path/to/ALL.genotypes.vcf > \
+    sample.genotype.vcf
 
 and then run:
 
