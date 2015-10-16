@@ -247,7 +247,7 @@ class PersonalizeGenome :
                 jE = jS + int(intron_lengths[index][:-1]) - 1
                 key = str(ele[2]) + '_' + str(jS) + '_' + str(jE) #chr:start:end
                 readsMapped[key].append(ele[3]) #append read start location
-                pos = jE
+                pos = jE+1
     # end of looping through sam file
 
     #determine nnR
