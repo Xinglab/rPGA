@@ -4,7 +4,7 @@ import sys, os
 from setuptools import setup, find_packages
 
 setup(name='rPGA',
-      version='0.0.1',
+      version='1.0.1',
       packages = find_packages('src'),  # include all packages under src
 			package_dir = {'':'src'},   # all distutils packages are under src
       entry_points={'console_scripts': ['rPGA=rPGA.scripts.rPGA:main']},
@@ -12,7 +12,7 @@ setup(name='rPGA',
 			author = 'Shayna R. Stein, Emad Bahrami-Samani',
 			author_email = 'ebs@ucla.edu',
 			url = 'https://github.com/xinglab/rPGA',
-			download_url = 'https://github.com/xinglab/rPGA/tarball/rPGA_0.0.1',
+			download_url = 'https://github.com/xinglab/rPGA/tarball/rPGA_1.0.1',
 			license='GPL3',
 			keywords = [],
 			classifiers = [],

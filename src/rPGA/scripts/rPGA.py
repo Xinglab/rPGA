@@ -41,8 +41,8 @@ def main() :
   parser.add_argument('-b',help='flag to write allele specific bam files',action='store_true')
   parser.add_argument('-p',help='multiprocessing flag',action='store_true')
   parser.add_argument('-a',help='0 - only include allele specific reads (default) \n 1 - also include reads that only align to that haplotype, but not the other \n 2 - also include common reads in allele bam file')
-  parser.add_argument('-g',help='flag denoting gzipped reads')
-  parser.add_argument('--conflict',help='flag to print conflicting reads')
+  parser.add_argument('-g',help='flag denoting gzipped reads',action='store_true')
+  parser.add_argument('--conflict',help='flag to print conflicting reads',action='store_true')
   parser.add_argument('-M',help="max number of multiple alignments in STAR mapping")
   args = parser.parse_args()
   command = args.command
