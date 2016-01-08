@@ -25,7 +25,7 @@ import genotype
 import junctions
 import seqs
 import running
-
+import argparse
 def main() :
   """
     This function just performs dispatch on the command line that a user
@@ -33,20 +33,36 @@ def main() :
     function the user wants rPGA to perform, then dispatch to the appropriate
     module.
   """
-  if sys.argv[1] == "init" :
-    init.main(sys.argv[2:])
-  elif sys.argv[1] == "genomes" :
-    genomes.main(sys.argv[2:])
-  elif sys.argv[1] == "genotype" :
-    genotype.main(sys.argv[2:])
-  elif sys.argv[1] == "junctions" :
-    junctions.main(sys.argv[2:])
-  elif sys.argv[1] == "sequences" :
-    seqs.main(sys.argv[2:])
-  elif sys.argv[1] == "run" :
-    running.main(sys.argv[2:])
+  parser = argparse.ArgumentParser(description='rPGA')
+  parser.add_argument('command',nargs='*')
+  parser.add_argument('-N')
+  parser.add_argument('-T')
+  parser.add_argument('-c',help='chromsome')
+  parser.add_argument('-b',help='flag to write allele specific bam files',action='store_true')
+  parser.add_argument('-p',help='multiprocessing flag',action='store_true')
+  parser.add_argument('-a',help='0 - only include allele specific reads (default) \n 1 - also include reads that only align to that haplotype, but not the other \n 2 - also include common reads in allele bam file')
+  parser.add_argument('-g',help='flag denoting gzipped reads')
+  parser.add_argument('--conflict',help='flag to print conflicting reads')
+  parser.add_argument('-M',help="max number of multiple alignments in STAR mapping")
+  args = parser.parse_args()
+  command = args.command
+  if len(command)==0:
+    sys.stderr.write("rPGA: need a command - init, genomes, genotype, junctions, sequences, or run \n'" )
+    print helpStr
+  elif command[0]=="init":
+    init.main(command[1:])
+  elif command[0] == "genomes" :
+    genomes.main(command[1:])
+  elif command[0] == "genotype" :
+    genotype.main(command[1:])
+  elif command[0] == "junctions" :
+    junctions.main(command[1:])
+  elif command[0] == "sequences" :
+    seqs.main(command[1:])
+  elif command[0] == "run" :
+    running.main(args)
   else :
-    sys.stderr.write("rPGA: I don't recognise the option '" + sys.argv[1] +\
+    sys.stderr.write("rPGA: I don't recognise the option '" + command[0] +\
                      "'.\n")
 
 """

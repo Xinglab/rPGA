@@ -53,13 +53,15 @@ def main(args) :
             "$ rPGA sequences add help                                   \n"
 
 
-  if len(args) == 0 or (len(args) == 1 and isHelpString(args[0])) :
+  if len(args) <= 1 :
     sys.stderr.write(helpStr + "\n\n")
+    sys.exit()
   else :
     command = args[0].strip().lower()
     if command == "add" :
-      if args[0].strip().lower() == "help" :
-        print "Help"
+      if args[1].strip().lower() == "help" :
+        sys.stderr.write(helpStr + "\n\n")
+        sys.exit()
       else :
         dest_fn = open(".rPGASeqs.yaml", "w")
         for i in range(1,len(args)) :

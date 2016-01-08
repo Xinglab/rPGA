@@ -34,7 +34,7 @@ def main(args) :
   """
 
   helpStr = "------------------------------------------------------------\n" +\
-            "                    INITIALISE A PROJECT                    \n" +\
+            "                    INITIALIZE A PROJECT                    \n" +\
             "------------------------------------------------------------\n" +\
             "Before you can begin working on a project with rPGA, you    \n" +\
             "need to initialise the project directory. To do this, first \n" +\
@@ -62,16 +62,16 @@ def main(args) :
       else :
         if not os.path.exists(args[1]):
           os.makedirs(args[1])
-          os.makedirs(os.path.join(args[1], "HG19"))
+          os.makedirs(os.path.join(args[1], "REF"))
           os.makedirs(os.path.join(args[1], "HAP1"))
           os.makedirs(os.path.join(args[1], "HAP2"))
-          os.makedirs(os.path.join(args[1], "HG19/temp"))
+          os.makedirs(os.path.join(args[1], "REF/temp"))
           os.makedirs(os.path.join(args[1], "HAP1/temp"))
           os.makedirs(os.path.join(args[1], "HAP2/temp"))
-          os.makedirs(os.path.join(args[1], "HG19/STARindex"))
+          os.makedirs(os.path.join(args[1], "REF/STARindex"))
           os.makedirs(os.path.join(args[1], "HAP1/STARindex"))
           os.makedirs(os.path.join(args[1], "HAP2/STARindex"))
-          os.makedirs(os.path.join(args[1], "HG19/STARalign"))
+          os.makedirs(os.path.join(args[1], "REF/STARalign"))
           os.makedirs(os.path.join(args[1], "HAP1/STARalign"))
           os.makedirs(os.path.join(args[1], "HAP2/STARalign"))
           dest_fn = open(".rPGAProject.yaml", "w")
