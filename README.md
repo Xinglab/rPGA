@@ -244,7 +244,7 @@ Before you send us the bug report though, please check the following:
 
 Publication
 ------------
-Stein S, Lu Z, Bahrami-Samani E, Park JW, Xing Y. Discover hidden splicing variations by mapping personal transcriptomes to personal genomes. Nucleic Acids Res. In Press.
+Stein S, Lu Z, Bahrami-Samani E, Park JW, Xing Y. Discover hidden splicing variations by mapping personal transcriptomes to personal genomes. Nucleic Acids Res. 2015 Dec 15;43(22):10612-22.
 
 Copyright and License Information
 ---------------------------------
