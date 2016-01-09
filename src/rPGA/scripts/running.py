@@ -66,13 +66,15 @@ def STAR_perform_mapping(project, gnme, seqs, threads,mismatches,gz, multimapped
   opts += (" --alignEndsType EndToEnd")
   opts += (" --outFilterMismatchNmax " + str(mismatches))
   opts += (" --outFileNamePrefix " + str(project))
-  opts += ("/" + str(gnme) + "/" + "STARalign ")
+  opts += ("/" + str(gnme) + "/" + "STARalign/ ")
   opts += ("--outFilterType BySJout --outFilterIntronMotifs RemoveNoncanonical")
   opts += (" --alignIntronMax 300000 --outSJfilterOverhangMin -1 8 8 8")
-  opts += (" --outSAMtype BAM Unsorted")
+
+
 
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
+  print commandSTAR
   oFile = open(str(project) + "/mapping_commands.sh","w")
   oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
               commandSTAR + "\n#\n")
@@ -619,15 +621,18 @@ def main(args) :
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref)
         p.personalize_genome()
-        STAR_create_genome(outDir, ref, "HG19",threads)
+        STAR_create_genome(outDir, ref, "REF",threads)
         STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
         STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
+
+
+
     elif setting == "mapping" :
       if command[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
         sys.exit()
       elif len(command) > 2 :
-        sys.stderr.write("Input arguments are not correct\n")
+        sys.stderr.write("Input arguments "+ command+" are not correct\n")
         sys.stderr.write(helpStr + '\n\n')
         sys.exit()
       else :
@@ -638,6 +643,8 @@ def main(args) :
         bam_sort_and_index(outDir+'/HAP1/STARalign/Aligned.out')
         bam_sort_and_index(outDir+'/HAP2/STARalign/Aligned.out')
         bam_sort_and_index(outDir+'/REF/STARalign/Aligned.out')
+
+
     elif setting == "discover" :
       if command[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
