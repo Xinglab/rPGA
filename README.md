@@ -6,12 +6,13 @@
                                        / /  / ____/ /_/ / ___ |
                                       /_/  /_/    \____/_/  |_|
                                   *********************************
-                                  *            V 0.0.1            *
+                                  *            V 1.0.1            *
                                   *********************************
 
 
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
-personal transcriptomes to personal genomes.
+personal transcriptomes to personal genomes. In version 1.0.1, rPGA will also 
+generate allele specific alignments. 
 
 Overview
 ------------
@@ -141,17 +142,25 @@ To add a genotype, where $ is your prompt:
 
 First extract the individual genotype, if necessary:
 
-    $ bcftools view -s sample_name -v snps -p /path/to/ALL.genotypes.vcf > \
-    sample.genotype.vcf
+    $ bcftools view -s sample_name -v snps -p /path/to/ALL.chr.genotypes.vcf > \
+    sample.chr.genotype.vcf
+
+Note rPGA requires a separate vcf file for each chromosome. They should be located
+in a directory and named 1.vcf,2.vcf,3.vcf,...
 
 and then run:
 
-    $ rPGA genotype add /path/to/genotype
+    $ rPGA genotype add /path/to/genotype_directory
+
+Where 1.vcf,2.vcf,3.vcf are located in genotype_directory
 
 At this step rPGA is ready to make the personalized genome. To do this run this
 command:
 
     $ rPGA run personalize
+
+rPGA personalize options:
+     -T		 number of threads to use when building STAR genome, default is 8
 
 The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. To do this, first rPGA needs to know where to find the
@@ -173,6 +182,12 @@ that obviously comes at a cost, and that is the required memory. Make sure you
 have enough memory on your computer that is running the STAR (~ 16-28 GB,
 depending on the options of the mapper).
 
+rPGA mapping options:
+     -T	     number of threads STAR uses, default is 8
+     -M      max number of multiple alignments, default is 20
+     -N      max number of read mismatches, default is 3
+     -g	     use if sequence reads are gzipped
+
 After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
 know splice junctions, you can run:
@@ -182,6 +197,24 @@ know splice junctions, you can run:
 Finally, rPGA is ready to discover novel splice junctions. To do this run:
 
     $ rPGA run discover
+
+rPGA discover options:
+     -c CHROM *		Chromosome to analyze
+     -b			flag to write allele specific bam files
+     --conflict		flag to write bam file containing conflicting reads
+
+* Required parameter 
+
+If you are only interested in generating the allele specific bam files, run:
+   
+   $ rPGA run alleles
+
+rPGA discover options:
+     -c CHROM *		Chromosome to be analyzed
+     --conflict		flag to write bam file containing conflicting reads
+
+* Required parameter  
+   			
 
 Enjoy!
 
