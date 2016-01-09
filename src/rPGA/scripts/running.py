@@ -128,7 +128,7 @@ class PersonalizeGenome :
         if line.startswith('#'):
           continue
         else:
-          result = {}
+          result = defaultdict(str)
           fields = line.rstrip().split()
           for i,col in enumerate(VCF_HEADER):
             result[col] = fields[i]
@@ -593,7 +593,7 @@ def main(args) :
   writeBam = args.b
   multiprocessing = args.p
   gzipped = args.g
-  conflicting = args.conflict
+  writeConflicting = args.conflict
   if len(command) == 1 or (len(command)==2 and isHelpString(command[1].strip().lower())):
     sys.stderr.write(helpStr + "\n\n")
   else :
@@ -677,6 +677,7 @@ def main(args) :
         sys.exit()
       else:
         discoverJunctions = False
+        
         writeBam = True
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
