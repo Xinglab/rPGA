@@ -206,10 +206,10 @@ rPGA discover options:
      --conflict		flag to write bam file containing conflicting reads 
 
 If you are only interested in generating the allele specific bam files, run:
-   
+
    $ rPGA run alleles
 
-rPGA discover options:
+rPGA alleles options:
 
      -c CHROM 		Chromosome to be analyzed
      --conflict		flag to write bam file containing conflicting reads
