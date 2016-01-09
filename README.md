@@ -183,10 +183,10 @@ have enough memory on your computer that is running the STAR (~ 16-28 GB,
 depending on the options of the mapper).
 
 rPGA mapping options:
-     -T	     number of threads STAR uses, default is 8
-     -M      max number of multiple alignments, default is 20
-     -N      max number of read mismatches, default is 3
-     -g	     use if sequence reads are gzipped
+     - -T	     number of threads STAR uses, default is 8
+     - -M      max number of multiple alignments, default is 20
+     - -N      max number of read mismatches, default is 3
+     - -g	     use if sequence reads are gzipped
 
 After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
