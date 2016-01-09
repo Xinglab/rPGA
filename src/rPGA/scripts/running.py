@@ -85,9 +85,11 @@ def STAR_perform_mapping(project, gnme, seqs, threads,mismatches,gz, multimapped
   return
 
 
-def bam_sort_and_index(bam_fn):
-  pysam.sort(bam_fn+'.bam',bam_fn+'.sorted')
-  pysam.index(bam_fn+'.sorted.bam')
+def sam_to_sorted_bam(sam_fn):
+  bam_fn = sam_fn + '.bam'
+  pysam.view("-Sb","-o%s" % bam_fn, sam_fn+".sam")
+  pysam.sort(bam_fn, sam_fn+'.sorted')
+  pysam.index(sam_fn+'.sorted.bam')
   return
 
 def worker(i):
