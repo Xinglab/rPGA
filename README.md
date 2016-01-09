@@ -146,13 +146,13 @@ First extract the individual genotype, if necessary:
     sample.chr.genotype.vcf
 
 Note rPGA requires a separate vcf file for each chromosome. They should be located
-in a directory and named 1.vcf,2.vcf,3.vcf,...
+in a directory and named 1.vcf, 2.vcf, 3.vcf,...
 
 and then run:
 
     $ rPGA genotype add /path/to/genotype_directory
 
-Where 1.vcf,2.vcf,3.vcf are located in genotype_directory
+Where 1.vcf, 2.vcf, 3.vcf are located in genotype_directory
 
 At this step rPGA is ready to make the personalized genome. To do this run this
 command:
@@ -184,12 +184,10 @@ depending on the options of the mapper).
 
 rPGA mapping options:
 
-     '''
      -T	     number of threads STAR uses, default is 8
      -M      max number of multiple alignments, default is 20
      -N      max number of read mismatches, default is 3
      -g	     use if sequence reads are gzipped
-     '''
 
 After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
@@ -202,6 +200,7 @@ Finally, rPGA is ready to discover novel splice junctions. To do this run:
     $ rPGA run discover
 
 rPGA discover options:
+
      -c CHROM *		Chromosome to analyze \
      -b			flag to write allele specific bam files \
      --conflict		flag to write bam file containing conflicting reads \
@@ -213,6 +212,7 @@ If you are only interested in generating the allele specific bam files, run:
    $ rPGA run alleles
 
 rPGA discover options:
+
      -c CHROM *		Chromosome to be analyzed
      --conflict		flag to write bam file containing conflicting reads
 
