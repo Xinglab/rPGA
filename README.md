@@ -199,9 +199,9 @@ Finally, rPGA is ready to discover novel splice junctions. To do this run:
     $ rPGA run discover
 
 rPGA discover options:
-     -c CHROM *		Chromosome to analyze
-     -b			flag to write allele specific bam files
-     --conflict		flag to write bam file containing conflicting reads
+     -c CHROM *		Chromosome to analyze \
+     -b			flag to write allele specific bam files \
+     --conflict		flag to write bam file containing conflicting reads \
 
 * Required parameter 
 
