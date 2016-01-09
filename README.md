@@ -207,7 +207,7 @@ rPGA discover options:
 
 If you are only interested in generating the allele specific bam files, run:
 
-   $ rPGA run alleles
+    $ rPGA run alleles
 
 rPGA alleles options:
 
