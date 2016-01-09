@@ -626,7 +626,7 @@ def main(args) :
       if command[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
         sys.exit()
-      elif len(command) >= 2 :
+      elif len(command) > 2 :
         sys.stderr.write("Input arguments are not correct\n")
         sys.stderr.write(helpStr + '\n\n')
         sys.exit()
