@@ -116,7 +116,7 @@ Usage: Discover Hidden Splice Junctions
 Before you can begin working on a project with rPGA, you need to initialize the
 project directory. To do this, run:
 
-    $ rPGA init project_name
+    $ rPGA init project name
 
 For each genome, rPGA needs to know where to find A fasta file with the full
 genome, one chromosome per sequence. To add a genome called hg19, where $ is
@@ -161,7 +161,7 @@ command:
 
     $ rPGA run personalize
 
-rPGA personalize options:
+rPGA personalize parameters:
      -T		 number of threads to use when building STAR genome, default is 8
 
 The next step is to map the sequencing data to the personalized genome using
@@ -184,7 +184,7 @@ that obviously comes at a cost, and that is the required memory. Make sure you
 have enough memory on your computer that is running the STAR (~ 16-28 GB,
 depending on the options of the mapper).
 
-rPGA mapping options:
+rPGA mapping parameters:
 
      -T	     number of threads STAR uses, default is 8
      -M      max number of multiple alignments, default is 20
@@ -201,9 +201,9 @@ Finally, rPGA is ready to discover novel splice junctions. To do this run:
 
     $ rPGA run discover
 
-rPGA discover options:
+rPGA discover parameters:
 
-     -c CHROM        Chromosome to analyze 
+     -c CHROM        Chromosome to analyze (required) 
      -b              flag to write allele specific bam files 
      --conflict      flag to write bam file containing conflicting reads 
 
@@ -217,9 +217,9 @@ you are only interested in generating the allele specific bam files, run:
 
 during the last step instead of running the discover function.
 
-rPGA alleles options:
+rPGA alleles parameters:
 
-     -c CHROM 		Chromosome to be analyzed
+     -c CHROM 		Chromosome to be analyzed (required)
      --conflict		flag to write bam file containing conflicting reads
 
 ### Generating Allele Specific Bam Files
