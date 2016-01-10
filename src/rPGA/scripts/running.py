@@ -86,6 +86,7 @@ def STAR_perform_mapping(project, gnme, seqs, threads,mismatches,gz, multimapped
 
 
 def sam_to_sorted_bam(sam_fn):
+  print "sam to bam: ", sam_fn
   bam_fn = sam_fn + '.bam'
   pysam.view("-Sb","-o%s" % bam_fn, sam_fn+".sam")
   pysam.sort(bam_fn, sam_fn+'.sorted')
@@ -175,7 +176,7 @@ class PersonalizeGenome :
         hap2['chr'+chrom][int(pos)-1] = alt
     for chrom in hap2:
       hap2_out.write('>'+chrom+'\n')
-      hap2_out.write(''.join(hap1[chrom])+'\n')
+      hap2_out.write(''.join(hap2[chrom])+'\n')
     hap2.clear()
     hap2_out.close()
 
@@ -639,9 +640,9 @@ def main(args) :
         sys.exit()
       else :
         seqs = ".rPGASeqs.yaml"
-        STAR_perform_mapping(outDir, "REF", seqs,threads,mismatches,gzipped,multimapped)
-        STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
-        STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
+#        STAR_perform_mapping(outDir, "REF", seqs,threads,mismatches,gzipped,multimapped)
+#        STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
+#        STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
         sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
         sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
         sam_to_sorted_bam(outDir+'/REF/STARalign/Aligned.out')
