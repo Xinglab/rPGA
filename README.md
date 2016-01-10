@@ -264,16 +264,20 @@ personalized genomes, hap1.fa and hap2.fa.
 
 4. For each read:
   * Check the position in the read corresponding to the heterozygous SNP.
+
   * A read is hap1 specific if:
     1. SNP read base matches the hap1 SNP allele 
     2. Edit distance to hap1 genome < edit distance to hap2 genome
+
   * Likewise, a read is hap2 specific if 
     1. SNP read base matches the hap2 SNP allele
     2. Edit distance to hap2 genome < edit distance to hap1 genome
+
   * If a read covers multiple heterozygous SNPs, a majority vote is used. For 
       example, if a read covers 3 heterozygous SNPs and 2 match the hap1 allele 
       and 1 matches the hap2 allele AND the edit distance to hap1 < edit distance
       to hap2, the read is assigned to hap1.
+
   * If a read cannot be assigned to either hap1 or hap2 according to the above
       rules, it is considered "conflicting" and is not assigned to either haplotype.
       To output such conflicting reads, use the --conflict option when running 
