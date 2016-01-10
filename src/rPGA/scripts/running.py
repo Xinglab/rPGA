@@ -642,9 +642,9 @@ def main(args) :
         STAR_perform_mapping(outDir, "REF", seqs,threads,mismatches,gzipped,multimapped)
         STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
         STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
-        bam_sort_and_index(outDir+'/HAP1/STARalign/Aligned.out')
-        bam_sort_and_index(outDir+'/HAP2/STARalign/Aligned.out')
-        bam_sort_and_index(outDir+'/REF/STARalign/Aligned.out')
+        sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
+        sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
+        sam_to_sorted_bam(outDir+'/REF/STARalign/Aligned.out')
 
 
     elif setting == "discover" :
