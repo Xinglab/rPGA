@@ -163,8 +163,8 @@ class PersonalizeGenome :
     hap1_out = open(self._hap1Ref,'w')
     for chrom in vcf1:
       for pos in vcf1[chrom]:
-        ref = vcf2[chrom][pos][0]
-        alt = vcf2[chrom][pos][1]
+        ref = vcf1[chrom][pos][0]
+        alt = vcf1[chrom][pos][1]
         hap1['chr'+chrom][int(pos)-1] = alt
     for chrom in hap1:
       hap1_out.write('>'+chrom+'\n')
