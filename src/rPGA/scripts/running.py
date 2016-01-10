@@ -133,10 +133,15 @@ class PersonalizeGenome :
         if line.startswith('#'):
           continue
         else:
-          result = defaultdict(str)
+          result = {}
           fields = line.rstrip().split()
           for i,col in enumerate(VCF_HEADER):
             result[col] = fields[i]
+          infos = [x for x in result['INFO'].split(';') if x.strip()]
+          for i in infos:
+            if '=' in i:
+              key,value = i.split('=')
+              result[key] = value
           if (result['VT'] == 'SNP'): 
             geno = result['SAMPLE'].split(':')[0]
             if '|' in geno:
