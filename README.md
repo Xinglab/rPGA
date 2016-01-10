@@ -239,18 +239,18 @@ rPGA alleles options:
                       (Alignment)     (Alignment)     (Alignment)
                                            |_______________|
                                                    |
-   					           |
-			              _____________|_____________        
+                                                   |
+                                      _____________|_____________        
                                      | - Collect reads covering  |
-				     |  heterozygous SNPs        |
-				     | - Perform allele specific | 
-				     | 	read assignment          |
-				     	           |
-		                      _____________|_____________
-				 ____|____                  ____|____	   
-		                (  Hap 1  )                (  Hap 2  )  
-				( Specific)                ( Specific)
-				(Alignment)                (Alignment)
+                                     |  heterozygous SNPs        |
+                                     | - Perform allele specific |
+                                     | 	read assignment          |
+                                                   |
+                                      _____________|____________
+                                 ____|____                  ____|____	 
+                                (  Hap 1  )                (  Hap 2  )  
+                                ( Specific)                ( Specific)
+                                (Alignment)                (Alignment)
 
 
 To generate allele specific bam files:
