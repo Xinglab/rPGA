@@ -110,8 +110,8 @@ variable to include these directories, but it is not required. All of the
 below instructions assume these directories are in your PATH variable; if not,
 replace the names of the scripts/executable with their full path.
 
-Usage
------
+Usage: Discover Hidden Splice Junctions
+---------------------------------------
 
 Before you can begin working on a project with rPGA, you need to initialize the
 project directory. To do this, run:
@@ -207,16 +207,80 @@ rPGA discover options:
      -b			flag to write allele specific bam files 
      --conflict		flag to write bam file containing conflicting reads 
 
-If you are only interested in generating the allele specific bam files, run:
+Usage: Allele Specific Bam Files
+--------------------------------
+
+To discover hidden splice junctions, rPGA generates allele specific bam files. If 
+you are only interested in generating the allele specific bam files, run:
 
     $ rPGA run alleles
+
+during the last step instead of running the discover function.
 
 rPGA alleles options:
 
      -c CHROM 		Chromosome to be analyzed
      --conflict		flag to write bam file containing conflicting reads
 
-   			
+### Generating Allele Specific Bam Files
+
+                     ________________           ____________________
+                    (Reference Genome)         (Genotype Information)
+                             |____________________________|
+                                  _________|_________
+                                 |  Personal Genome  |
+                                           |
+                                           |
+                                       ____|____           _______________
+                                      |   STAR  | <------ (Sequenced Reads)
+                            _______________|_______________
+                       ____|____       ____|____       ____|____
+                      (Reference)     (  Hap 1  )     (  Hap 2  )
+                      (Alignment)     (Alignment)     (Alignment)
+                                           |_______________|
+                                                   |
+   					           |
+			              _____________|_____________        
+                                     | - Collect reads covering  |
+				     |  heterozygous SNPs        |
+				     | - Perform allele specific | 
+				     | 	read assignment          |
+				     	           |
+		                      _____________|_____________
+				 ____|____                  ____|____	   
+		                (  Hap 1  )                (  Hap 2  )  
+				( Specific)                ( Specific)
+				(Alignment)                (Alignment)
+
+
+To generate allele specific bam files:
+1. Personalize reference genome according to a sample's genotype, producing two
+personalized genomes, hap1.fa and hap2.fa.
+
+2. Use STAR to align the sample's sequenced reads to the personalized genomes.
+
+3. Collect reads that cover each heterozygous SNP.
+
+4. For each read:
+   a. Check the position in the read corresponding to the heterozygous SNP.
+   b. A read is hap1 specific if:
+      (1) SNP read base matches the hap1 SNP allele 
+      (2) Edit distance to hap1 genome < edit distance to hap2 genome
+   c. Likewise, a read is hap2 specific if 
+      (1) SNP read base matches the hap2 SNP allele
+      (2) Edit distance to hap2 genome < edit distance to hap1 genome
+   d. If a read covers multiple heterozygous SNPs, a majority vote is used. For 
+      example, if a read covers 3 heterozygous SNPs and 2 match the hap1 allele 
+      and 1 matches the hap2 allele AND the edit distance to hap1 < edit distance
+      to hap2, the read is assigned to hap1.
+   e. If a read cannot be assigned to either hap1 or hap2 according to the above
+      rules, it is considered "conflicting" and is not assigned to either haplotype.
+      To output such conflicting reads, use the --conflict option when running 
+      "discover" or "alleles".
+
+5. Write all hap1 and hap2 specific reads to hap1.as.bam and hap2.as.bam, respectively.   
+
+
 
 Enjoy!
 
