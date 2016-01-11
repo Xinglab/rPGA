@@ -428,7 +428,7 @@ class DiscoverSpliceJunctions :
               for snp in snpreads1[pos][qname]:
                 check1.append(self.check_cigar(reads1[pos][qname], hetsnps[snp][0], snp)) 
                 check2.append(self.check_cigar(reads2[pos][qname], hetsnps[snp][1], snp)) 
-              if ((1 not in check1+check2) and (2 not in check1+check2)):
+              if (((0  in check1+check2) or (3 in check1+check2)) and (2 not in check1+check2)):
                 yes1 = sum([1 if int(i)==0 else 0 for i in check1])
                 yes2 = sum([1 if int(i)==0 else 0 for i in check2])
                 no1 = sum([1 if int(i)==3 else 0 for i in check1])
