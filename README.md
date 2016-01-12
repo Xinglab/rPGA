@@ -209,6 +209,12 @@ rPGA discover parameters:
 
 Note: if you use --rnaedit flag, then you MUST provide a file containing RNA editing events using -e 
 
+Using --rnaedit flag outputs two files per chromosome:
+
+      1. rna_edit.chrom.txt: contains RNA editing positions that overlap with heterozygous SNPs, and the number of reads overlapping each position that are assigned to hap1, hap2, or are conflicting. 
+      2. hap*.rna_edit.chrom.bam: contains reads that cover RNA editing/heterozygous SNP positions
+
+
 Usage: Allele Specific Bam Files
 --------------------------------
 
@@ -221,8 +227,8 @@ during the last step instead of running the discover function.
 
 rPGA alleles parameters:
 
-     -c CHROM 		Chromosome to be analyzed (required)
-     --conflict		flag to write bam file containing conflicting reads
+     -c CHROM           Chromosome to be analyzed (required)
+     --conflict         flag to write bam file containing conflicting reads
      --rnaedit          flag to check for RNA editing events that overlap heterozygous SNPs
      -e	                file containing RNA editing events (in format downloaded from RADAR: rnaedit.com)
 
