@@ -61,6 +61,8 @@ def main() :
     seqs.main(command[1:])
   elif command[0] == "run" :
     running.main(args)
+  elif command[0] == "merge":
+    merge.main(command[1:])
   else :
     sys.stderr.write("rPGA: I don't recognise the option '" + command[0] +\
                      "'.\n")

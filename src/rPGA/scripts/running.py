@@ -691,14 +691,14 @@ def main(args) :
         sys.stderr.write("Input arguments are not correct\n")
         sys.exit()
       else:
-        discoverJunctions = False
-        
+        discoverJunctions = False        
         writeBam = True
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
         hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
+        refBam = outDir + '/REF/STARalign/Aligned.out.sorted.bam'
         p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting)
-        p.allele_specific_assignment()
+        p.haplotype_specific_junctions()
 
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
