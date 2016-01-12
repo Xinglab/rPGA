@@ -52,7 +52,7 @@ def main(args) :
             "                                                            \n" +\
             "To merge bam files for all 22 autosomes and X and Y:        \n" +\
             "                                                            \n" +\
-            "$ rPGA merge all                                            \n" +\
+            "$ rPGA merge all                                            \n"
 
 
 if len(args) < 1:
@@ -66,15 +66,27 @@ else :
         sys.exit()
       else :
         outDir = open(".rPGAProject.yaml").readline().rstrip()
-        pysam.merge('-f',outDir+'/hap1.as.bam',outDir+'/hap1.1.as.bam',outDir+'/hap1.2.as.bam',outDir+'/hap1.3.as.bam',outDir+'/hap1.4.as.bam',outDir+'/hap1.5.as.bam',outDir+'/hap1.6.as.bam',outDir+'/hap1.7.as.bam',outDir+'/hap1.8.as.bam',outDir+'/hap1.9.as.bam',outDir+'/hap1.10.as.bam',outDir+'/hap1.11.as.bam',outDir+'/hap1.12.as.bam',outDir+'/hap1.13.as.bam',outDir+'/hap1.14.as.bam',outDir+'/hap1.15.as.bam',outDir+'/hap1.16.as.bam',outDir+'/hap1.17.as.bam',outDir+'/hap1.18.as.bam',outDir+'/hap1.19.as.bam',outDir+'/hap1.20.as.bam',outDir+'/hap1.21.as.bam',outDir+'/hap1.22.as.bam',outDir+'/hap1.X.as.bam',outDir+'/hap1.Y.as.bam')
-        pysam.merge('-f',outDir+'/hap2.as.bam',outDir+'/hap2.1.as.bam',outDir+'/hap2.2.as.bam',outDir+'/hap2.3.as.bam',outDir+'/hap2.4.as.bam',outDir+'/hap2.5.as.bam',outDir+'/hap2.6.as.bam',outDir+'/hap2.7.as.bam',outDir+'/hap2.8.as.bam',outDir+'/hap2.9.as.bam',outDir+'/hap2.10.as.bam',outDir+'/hap2.11.as.bam',outDir+'/hap2.12.as.bam',outDir+'/hap2.13.as.bam',outDir+'/hap2.14.as.bam',outDir+'/hap2.15.as.bam',outDir+'/hap2.16.as.bam',outDir+'/hap2.17.as.bam',outDir+'/hap2.18.as.bam',outDir+'/hap2.19.as.bam',outDir+'/hap2.20.as.bam',outDir+'/hap2.21.as.bam',outDir+'/hap2.22.as.bam',outDir+'/hap2.X.as.bam',outDir+'/hap2.Y.as.bam')
+        pysam.merge('-f',outDir+'/hap1.as.bam',outDir+'/hap1.1.as.bam',outDir+'/hap1.2.as.bam',outDir+'/hap1.3.as.bam',outDir+'/hap1.4.as.bam',outDir+'/hap1.5.as.bam',outDir+'/hap1.6.as.bam',
+                    outDir+'/hap1.7.as.bam',outDir+'/hap1.8.as.bam',outDir+'/hap1.9.as.bam',outDir+'/hap1.10.as.bam',outDir+'/hap1.11.as.bam',outDir+'/hap1.12.as.bam',outDir+'/hap1.13.as.bam',
+                    outDir+'/hap1.14.as.bam',outDir+'/hap1.15.as.bam',outDir+'/hap1.16.as.bam',outDir+'/hap1.17.as.bam',outDir+'/hap1.18.as.bam',outDir+'/hap1.19.as.bam',outDir+'/hap1.20.as.bam',
+                    outDir+'/hap1.21.as.bam',outDir+'/hap1.22.as.bam',outDir+'/hap1.X.as.bam',outDir+'/hap1.Y.as.bam')
+        pysam.merge('-f',outDir+'/hap2.as.bam',outDir+'/hap2.1.as.bam',outDir+'/hap2.2.as.bam',outDir+'/hap2.3.as.bam',outDir+'/hap2.4.as.bam',outDir+'/hap2.5.as.bam',outDir+'/hap2.6.as.bam',
+                    outDir+'/hap2.7.as.bam',outDir+'/hap2.8.as.bam',outDir+'/hap2.9.as.bam',outDir+'/hap2.10.as.bam',outDir+'/hap2.11.as.bam',outDir+'/hap2.12.as.bam',outDir+'/hap2.13.as.bam',
+                    outDir+'/hap2.14.as.bam',outDir+'/hap2.15.as.bam',outDir+'/hap2.16.as.bam',outDir+'/hap2.17.as.bam',outDir+'/hap2.18.as.bam',outDir+'/hap2.19.as.bam',outDir+'/hap2.20.as.bam',
+                    outDir+'/hap2.21.as.bam',outDir+'/hap2.22.as.bam',outDir+'/hap2.X.as.bam',outDir+'/hap2.Y.as.bam')
     elif command == "auto":
       if args[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
         sys.exit()
       else:
-        pysam.merge('-f',outDir+'/hap1.as.bam',outDir+'/hap1.1.as.bam',outDir+'/hap1.2.as.bam',outDir+'/hap1.3.as.bam',outDir+'/hap1.4.as.bam',outDir+'/hap1.5.as.bam',outDir+'/hap1.6.as.bam',outDir+'/hap1.7.as.bam',outDir+'/hap1.8.as.bam',outDir+'/hap1.9.as.bam',outDir+'/hap1.10.as.bam',outDir+'/hap1.11.as.bam',outDir+'/hap1.12.as.bam',outDir+'/hap1.13.as.bam',outDir+'/hap1.14.as.bam',outDir+'/hap1.15.as.bam',outDir+'/hap1.16.as.bam',outDir+'/hap1.17.as.bam',outDir+'/hap1.18.as.bam',outDir+'/hap1.19.as.bam',outDir+'/hap1.20.as.bam',outDir+'/hap1.21.as.bam',outDir+'/hap1.22.as.bam')
-        pysam.merge('-f',outDir+'/hap2.as.bam',outDir+'/hap2.1.as.bam',outDir+'/hap2.2.as.bam',outDir+'/hap2.3.as.bam',outDir+'/hap2.4.as.bam',outDir+'/hap2.5.as.bam',outDir+'/hap2.6.as.bam',outDir+'/hap2.7.as.bam',outDir+'/hap2.8.as.bam',outDir+'/hap2.9.as.bam',outDir+'/hap2.10.as.bam',outDir+'/hap2.11.as.bam',outDir+'/hap2.12.as.bam',outDir+'/hap2.13.as.bam',outDir+'/hap2.14.as.bam',outDir+'/hap2.15.as.bam',outDir+'/hap2.16.as.bam',outDir+'/hap2.17.as.bam',outDir+'/hap2.18.as.bam',outDir+'/hap2.19.as.bam',outDir+'/hap2.20.as.bam',outDir+'/hap2.21.as.bam',outDir+'/hap2.22.as.bam')
+        pysam.merge('-f',outDir+'/hap1.as.bam',outDir+'/hap1.1.as.bam',outDir+'/hap1.2.as.bam',outDir+'/hap1.3.as.bam',outDir+'/hap1.4.as.bam',outDir+'/hap1.5.as.bam',outDir+'/hap1.6.as.bam',
+                    outDir+'/hap1.7.as.bam',outDir+'/hap1.8.as.bam',outDir+'/hap1.9.as.bam',outDir+'/hap1.10.as.bam',outDir+'/hap1.11.as.bam',outDir+'/hap1.12.as.bam',outDir+'/hap1.13.as.bam',
+                    outDir+'/hap1.14.as.bam',outDir+'/hap1.15.as.bam',outDir+'/hap1.16.as.bam',outDir+'/hap1.17.as.bam',outDir+'/hap1.18.as.bam',outDir+'/hap1.19.as.bam',outDir+'/hap1.20.as.bam',
+                    outDir+'/hap1.21.as.bam',outDir+'/hap1.22.as.bam')
+        pysam.merge('-f',outDir+'/hap2.as.bam',outDir+'/hap2.1.as.bam',outDir+'/hap2.2.as.bam',outDir+'/hap2.3.as.bam',outDir+'/hap2.4.as.bam',outDir+'/hap2.5.as.bam',outDir+'/hap2.6.as.bam',
+                    outDir+'/hap2.7.as.bam',outDir+'/hap2.8.as.bam',outDir+'/hap2.9.as.bam',outDir+'/hap2.10.as.bam',outDir+'/hap2.11.as.bam',outDir+'/hap2.12.as.bam',outDir+'/hap2.13.as.bam',
+                    outDir+'/hap2.14.as.bam',outDir+'/hap2.15.as.bam',outDir+'/hap2.16.as.bam',outDir+'/hap2.17.as.bam',outDir+'/hap2.18.as.bam',outDir+'/hap2.19.as.bam',outDir+'/hap2.20.as.bam',
+                    outDir+'/hap2.21.as.bam',outDir+'/hap2.22.as.bam')
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
       sys.stderr.write(helpStr + "\n\n")
