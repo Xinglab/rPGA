@@ -226,11 +226,11 @@ for each haplotype, hap1.as.bam and hap2.as.bam.
 
 To merge all 22 autosomes run:
 
-   $ rPGA merge auto
+    $ rPGA merge auto
 
 To merge all 22 autosome, X, and Y, run:
 
-   $ rPGA merge all
+    $ rPGA merge all
 
 
 
