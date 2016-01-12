@@ -211,7 +211,8 @@ Note: if you use --rnaedit flag, then you MUST provide a file containing RNA edi
 
 Using --rnaedit flag outputs two files per chromosome:
 
-      1. rna_edit.chrom.txt: contains RNA editing positions that overlap with heterozygous SNPs, and the number of reads overlapping each position that are assigned to hap1, hap2, or are conflicting. 
+      1. rna_edit.chrom.txt: contains RNA editing positions that overlap with heterozygous SNPs, and 
+         the number of reads overlapping each position that are assigned to hap1, hap2, or are conflicting. 
       2. hap*.rna_edit.chrom.bam: contains reads that cover RNA editing/heterozygous SNP positions
 
 
