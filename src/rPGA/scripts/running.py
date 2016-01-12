@@ -94,7 +94,7 @@ def sam_to_sorted_bam(sam_fn):
   return
 
 def worker(i):
-  p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, i, writeBam,discoverJunctions)
+  p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, i, writeBam,discoverJunctions,rnaedit,editFile)
   p.haplotype_specific_junctions()
 
 ################################################################################
@@ -188,7 +188,7 @@ class PersonalizeGenome :
     return
 
 class DiscoverSpliceJunctions :
-  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting):
+  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile):
     self._outDir = outDir
     self._vcf = os.path.join(vcf,chromosome+'.vcf') 
     self._gtf = gtf
@@ -202,6 +202,27 @@ class DiscoverSpliceJunctions :
     self._VCFheader = ['CHROM','POS','ID','REF','ALT','QUAL','FILTER','INFO','FORMAT','SAMPLE']
     self._Bam1Out = outDir + '/hap1.' + chromosome + '.as.bam'
     self._Bam2Out = outDir + '/hap2.' + chromosome + '.as.bam'
+    self._rnaedit = rnaedit
+    self._editFile = editFile
+
+
+  def read_in_rna_editing(self)
+    logging.info('reading in rna editing events')
+    e = defaultdict(list)
+    fin = open(self._editFile)
+    header = []
+    firstline = True
+    for line in fin:
+      if firstline:
+        header = line.rstrip().split()
+        firstline = False
+      else:
+        fields = line.rstrip().split()
+        result = {}
+        for i,col in enumerate(header):
+          result[col] = fields[i]
+          e[result['chromosome'][3:]].append(int(result['position'])-1)
+    return e
 
   def read_in_vcf(self):
     vcf_in = open(self._vcf)
@@ -404,7 +425,15 @@ class DiscoverSpliceJunctions :
     hetsnps,snpids = self.read_in_vcf()
     geneGroup,gtf,geneInfo = self.read_in_gtf()
 
+    if self._rnaedit:
+      edit_snps = list()
+      edit_pos = self.read_in_rna_editing()
+
     for p in sorted(hetsnps):
+      if self._rnaedit:
+        if p in editpos[self._chromosome]:
+          edit_snps.append(p)
+
       for pileupcolumn in bam1.pileup('chr'+self._chromosome,int(p),int(p)+1):
         if int(pileupcolumn.pos)== p:
           for pileupread in pileupcolumn.pileups: 
@@ -418,6 +447,10 @@ class DiscoverSpliceJunctions :
             r = pileupread.alignment 
             snpreads2[r.pos][r.qname].append(p) 
             reads2[r.pos][r.qname] = r
+
+    if self._rna_edit:
+      edit_sites = defaultdict(lambda:defaultdict(list))
+      edit_reads = list()
             
     for pos in snpreads1:
       for qname in snpreads1[pos]: 
@@ -435,12 +468,22 @@ class DiscoverSpliceJunctions :
                 no2 = sum([1 if int(i)==3 else 0 for i in check2]) 
                 mismatch1 = self.num_mismatches(reads1[pos][qname]) 
                 mismatch2 = self.num_mismatches(reads2[pos][qname])
+                assignment = 0
                 if ((yes1 > no1) and (mismatch1 < mismatch2)): 
                   hap1.append(qname)
+                  assignment = 1
                 elif ((yes2 > no2) and (mismatch2 < mismatch1)): 
                   hap2.append(qname)
+                  assignment = 2
                 else:
                   conflicting.append(qname)
+
+                if self._rna_edit:
+                  sites = [1 if snp in edit_pos[self._chromosome] else 0 for snp in snpreads1[pos][qname]]
+                  if sum(sites)>0: ## read covers rna editing site that is also a het snp
+                    snp_pos = snpreads1[pos][qname][sites.index(1)]
+                    edit_sites[snp_pos+1][assignment].append(qname)
+                    edit_reads.append(qname)
 
     bamr = pysam.Samfile(self._refBam,"rb")
     inboth = [r for r in hap1 if r in hap2]
@@ -460,7 +503,18 @@ class DiscoverSpliceJunctions :
     if self._conflicting:
       conflict1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.conflicting.bam','wb',template=bam1)
       conflict2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.conflicting.bam','wb',template=bam2)
+    if self._rnaedit:
+      edit1 = pysam.Samfile('hap1.edit.'+chromosome+'.bam',"wb",template=sam1)
+      edit2 = pysam.Samfile('hap2.edit.'+chromosome+'.bam','wb',template=sam2)
+
+     # write rna editing report file
+    if self._rna_edit:
+      edit_report = open(self._outDir+'/rna-edit.'+self._chromosome+'.txt','w')
+      edit_report.write('#'+str(len(edit_snps))+' snps overlap with editing sites\n')
+      for pos in edit_sites:
+        edit_report.write(chromosome + '\t' + str(pos) + '\t' + str(len(edit_sites[pos][0])) + '\t' + str(len(edit_sites[pos][1]) + '\t' + str(len(edit_sites[pos][2]))) + '\n')
       
+
     for r in bam1.fetch('chr'+str(self._chromosome)):
       if self._writeBam:
         if r.qname in hap1:
@@ -474,6 +528,9 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['1'][start,end].add(r.pos)
+      if rna_edit:
+        if r.qname in editreads:
+          edit1.write(r)
     
     for r in bam2.fetch('chr'+self._chromosome):
       if self._writeBam:
@@ -488,7 +545,9 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['2'][start,end].add(r.pos)
-
+      if rna_edit:
+        if r.qname in editreads:
+          edit2.write(r)
     
     if self._discoverJunctions:
       for r in bamr.fetch('chr'+self._chromosome):
@@ -604,6 +663,7 @@ def main(args) :
   multiprocessing = args.p
   gzipped = args.g
   writeConflicting = args.conflict
+  rnaedit = args.rnaedit
   if len(command) == 1 or (len(command)==2 and isHelpString(command[1].strip().lower())):
     sys.stderr.write(helpStr + "\n\n")
   else :
@@ -615,7 +675,10 @@ def main(args) :
     gtf = ""
     ref = ""
     seqs = ""
-    
+    editFile = ""
+    if rnaedit:
+      editFile = args.e
+
     if setting == "personalize" :
       if command[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
@@ -680,7 +743,7 @@ def main(args) :
             p.join()
 
         else:
-          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting)
+          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile)
           p.haplotype_specific_junctions()
 
     elif setting == "alleles":
@@ -697,7 +760,7 @@ def main(args) :
         hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
         hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
         refBam = outDir + '/REF/STARalign/Aligned.out.sorted.bam'
-        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting)
+        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile)
         p.haplotype_specific_junctions()
 
     else :

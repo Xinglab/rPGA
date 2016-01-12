@@ -44,8 +44,14 @@ def main() :
   parser.add_argument('-g',help='flag denoting gzipped reads',action='store_true')
   parser.add_argument('--conflict',help='flag to print conflicting reads',action='store_true')
   parser.add_argument('-M',help="max number of multiple alignments in STAR mapping")
+  parser.add_argument('-e',help="file containing RNA editing positions, downloaded from RADAR")
+  parser.add_argument('--rnaedit',help="flag to check for RNA editing events, must also provide an RNA editing file usng -e parameter",action="store_true")
   args = parser.parse_args()
   command = args.command
+  
+  if ((args.rnaedit and not args.e) or (args.e and not args.rnaedit)):
+    sys.stderr.write("rPGA: if --rnaedit flag is used, you must also provide a file containing RNA editing locations using -e parameter \n")
+    sys.exit()
   if len(command)==0:
     sys.stderr.write("rPGA: need a command - init, genomes, genotype, junctions, sequences, or run \n'" )
     print helpStr
