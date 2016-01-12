@@ -59,6 +59,10 @@ STAR must be installed. By default, rPGA expects them to be somewhere in your
 path, but you if they are not you can specify their locations when running the
 configure script (see below).
 
+rPGA makes use of python packages pysam and pybedtools to process STAR output. 
+pysam and pybedtools are their respective dependencies must be installed. 
+
+
 Installation
 ------------
 All of the below installation instructions assume you have write access to the
@@ -211,9 +215,9 @@ Note: if you use --rnaedit flag, then you MUST provide a file containing RNA edi
 
 Using --rnaedit flag outputs two files per chromosome:
 
-      1. rna_edit.chrom.txt: contains RNA editing positions that overlap with heterozygous SNPs, and 
+      1. rna-edit.chrom.txt: contains RNA editing positions that overlap with heterozygous SNPs, and 
          the number of reads overlapping each position that are assigned to hap1, hap2, or are conflicting. 
-      2. hap*.rna_edit.chrom.bam: contains reads that cover RNA editing/heterozygous SNP positions
+      2. hap*.rna-edit.chrom.bam: contains reads that cover RNA editing/heterozygous SNP positions
 
 
 Usage: Allele Specific Bam Files
