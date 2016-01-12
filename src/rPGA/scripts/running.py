@@ -485,7 +485,6 @@ class DiscoverSpliceJunctions :
                     edit_sites[snp_pos+1][assignment].append(qname)
                     edit_reads.append(qname)
 
-    bamr = pysam.Samfile(self._refBam,"rb")
     inboth = [r for r in hap1 if r in hap2]
     hap1 = [r for r in hap1 if ((r not in inboth) and (r not in conflicting))]
     hap2 = [r for r in hap2 if ((r not in inboth) and (r not in conflicting))] 
@@ -496,6 +495,7 @@ class DiscoverSpliceJunctions :
     counts['conflicting'] = len(conflicting)/2
     
     if (self._discoverJunctions):
+      bamr = pysam.Samfile(self._refBam,"rb")
       junctions = defaultdict(lambda: defaultdict(set))
     if self._writeBam:
       out1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.bam','wb',template=bam1)
@@ -528,7 +528,7 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['1'][start,end].add(r.pos)
-      if rna_edit:
+      if rnaedit:
         if r.qname in editreads:
           edit1.write(r)
     
@@ -545,7 +545,7 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['2'][start,end].add(r.pos)
-      if rna_edit:
+      if rnaedit:
         if r.qname in editreads:
           edit2.write(r)
     
