@@ -528,7 +528,7 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['1'][start,end].add(r.pos)
-      if rnaedit:
+      if self._rnaedit:
         if r.qname in editreads:
           edit1.write(r)
     
@@ -545,7 +545,7 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['2'][start,end].add(r.pos)
-      if rnaedit:
+      if self._rnaedit:
         if r.qname in editreads:
           edit2.write(r)
     
