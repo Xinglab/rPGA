@@ -225,11 +225,11 @@ or all 22 autosomes, X, and Y, you can merge them into one allele specific bam f
 for each haplotype, hap1.as.bam and hap2.as.bam. 
 
 To merge all 22 autosomes run:
-   
+
    $ rPGA merge auto
 
 To merge all 22 autosome, X, and Y, run:
-   
+
    $ rPGA merge all
 
 
