@@ -206,7 +206,7 @@ class DiscoverSpliceJunctions :
     self._editFile = editFile
 
 
-  def read_in_rna_editing(self)
+  def read_in_rna_editing(self):
     logging.info('reading in rna editing events')
     e = defaultdict(list)
     fin = open(self._editFile)
@@ -757,6 +757,7 @@ def main(args) :
         discoverJunctions = False        
         writeBam = True
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+        gtf = open(".rPGAJunctions.yaml").readline().rstrip()
         hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
         hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
         refBam = outDir + '/REF/STARalign/Aligned.out.sorted.bam'
