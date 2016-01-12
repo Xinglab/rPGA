@@ -448,7 +448,7 @@ class DiscoverSpliceJunctions :
             snpreads2[r.pos][r.qname].append(p) 
             reads2[r.pos][r.qname] = r
 
-    if self._rna_edit:
+    if self._rnaedit:
       edit_sites = defaultdict(lambda:defaultdict(list))
       edit_reads = list()
             
@@ -478,7 +478,7 @@ class DiscoverSpliceJunctions :
                 else:
                   conflicting.append(qname)
 
-                if self._rna_edit:
+                if self._rnaedit:
                   sites = [1 if snp in edit_pos[self._chromosome] else 0 for snp in snpreads1[pos][qname]]
                   if sum(sites)>0: ## read covers rna editing site that is also a het snp
                     snp_pos = snpreads1[pos][qname][sites.index(1)]
@@ -508,7 +508,7 @@ class DiscoverSpliceJunctions :
       edit2 = pysam.Samfile('hap2.edit.'+chromosome+'.bam','wb',template=sam2)
 
      # write rna editing report file
-    if self._rna_edit:
+    if self._rnaedit:
       edit_report = open(self._outDir+'/rna-edit.'+self._chromosome+'.txt','w')
       edit_report.write('#'+str(len(edit_snps))+' snps overlap with editing sites\n')
       for pos in edit_sites:
