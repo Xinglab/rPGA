@@ -425,10 +425,8 @@ class DiscoverSpliceJunctions :
     hetsnps,snpids = self.read_in_vcf()
     geneGroup,gtf,geneInfo = self.read_in_gtf()
 
-    if self._rnaedit:
-      edit_snps = list()
-      edit_pos = self.read_in_rna_editing()
 
+    print hetsnps
     for p in sorted(hetsnps):
       if self._rnaedit:
         if p in editpos[self._chromosome]:
@@ -448,10 +446,6 @@ class DiscoverSpliceJunctions :
             snpreads2[r.pos][r.qname].append(p) 
             reads2[r.pos][r.qname] = r
 
-    if self._rnaedit:
-      edit_sites = defaultdict(lambda:defaultdict(list))
-      edit_reads = list()
-            
     for pos in snpreads1:
       for qname in snpreads1[pos]: 
         if qname in snpreads2[pos]: 
@@ -471,19 +465,10 @@ class DiscoverSpliceJunctions :
                 assignment = 0
                 if ((yes1 > no1) and (mismatch1 < mismatch2)): 
                   hap1.append(qname)
-                  assignment = 1
                 elif ((yes2 > no2) and (mismatch2 < mismatch1)): 
                   hap2.append(qname)
-                  assignment = 2
                 else:
                   conflicting.append(qname)
-
-                if self._rnaedit:
-                  sites = [1 if snp in edit_pos[self._chromosome] else 0 for snp in snpreads1[pos][qname]]
-                  if sum(sites)>0: ## read covers rna editing site that is also a het snp
-                    snp_pos = snpreads1[pos][qname][sites.index(1)]
-                    edit_sites[snp_pos+1][assignment].append(qname)
-                    edit_reads.append(qname)
 
     inboth = [r for r in hap1 if r in hap2]
     hap1 = [r for r in hap1 if ((r not in inboth) and (r not in conflicting))]
@@ -503,16 +488,7 @@ class DiscoverSpliceJunctions :
     if self._conflicting:
       conflict1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.conflicting.bam','wb',template=bam1)
       conflict2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.conflicting.bam','wb',template=bam2)
-    if self._rnaedit:
-      edit1 = pysam.Samfile('hap1.edit.'+chromosome+'.bam',"wb",template=sam1)
-      edit2 = pysam.Samfile('hap2.edit.'+chromosome+'.bam','wb',template=sam2)
 
-     # write rna editing report file
-    if self._rnaedit:
-      edit_report = open(self._outDir+'/rna-edit.'+self._chromosome+'.txt','w')
-      edit_report.write('#'+str(len(edit_snps))+' snps overlap with editing sites\n')
-      for pos in edit_sites:
-        edit_report.write(chromosome + '\t' + str(pos) + '\t' + str(len(edit_sites[pos][0])) + '\t' + str(len(edit_sites[pos][1]) + '\t' + str(len(edit_sites[pos][2]))) + '\n')
       
 
     for r in bam1.fetch('chr'+str(self._chromosome)):
@@ -528,9 +504,7 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['1'][start,end].add(r.pos)
-      if self._rnaedit:
-        if r.qname in editreads:
-          edit1.write(r)
+
     
     for r in bam2.fetch('chr'+self._chromosome):
       if self._writeBam:
@@ -545,9 +519,7 @@ class DiscoverSpliceJunctions :
           for j in juncs:
             start,end = j
             junctions['2'][start,end].add(r.pos)
-      if self._rnaedit:
-        if r.qname in editreads:
-          edit2.write(r)
+
     
     if self._discoverJunctions:
       for r in bamr.fetch('chr'+self._chromosome):

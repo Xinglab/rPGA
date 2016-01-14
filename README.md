@@ -208,16 +208,6 @@ rPGA discover parameters:
      -c CHROM        Chromosome to analyze (required) 
      -b              flag to write allele specific bam files 
      --conflict      flag to write bam file containing conflicting reads 
-     --rnaedit	     flag to check for RNA editing events that overlap heterozygous SNPs
-     -e              file containing RNA editing events (in format downloaded from RADAR: rnaedit.com)
-
-Note: if you use --rnaedit flag, then you MUST provide a file containing RNA editing events using -e 
-
-Using --rnaedit flag outputs two files per chromosome:
-
-      1. rna-edit.chrom.txt: contains RNA editing positions that overlap with heterozygous SNPs, and 
-         the number of reads overlapping each position that are assigned to hap1, hap2, or are conflicting. 
-      2. hap*.rna-edit.chrom.bam: contains reads that cover RNA editing/heterozygous SNP positions
 
 
 Usage: Allele Specific Bam Files
@@ -234,8 +224,6 @@ rPGA alleles parameters:
 
      -c CHROM           Chromosome to be analyzed (required)
      --conflict         flag to write bam file containing conflicting reads
-     --rnaedit          flag to check for RNA editing events that overlap heterozygous SNPs
-     -e	                file containing RNA editing events (in format downloaded from RADAR: rnaedit.com)
 
 Once you have generated allele specific bam files for all 22 autosomal chromosomes
 or all 22 autosomes, X, and Y, you can merge them into one allele specific bam file
