@@ -211,12 +211,14 @@ rPGA discover parameters:
 
 ### Output Files
 rPGA run discover outputs 4 files per chromosome:
+
 1. hap1.chrom.specific.bed
 2. hap2.chrom.specific.bed
 3. hap1hap2.chrom.specific.bed
 4. ref.chrom.specific.bed
 
 Columns of each bed file are:
+
 1. chrom
 2. junction start
 3. junction end
