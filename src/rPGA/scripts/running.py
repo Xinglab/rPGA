@@ -33,10 +33,10 @@ from pybedtools import BedTool
 def STAR_create_genome(project, genome, gnme, threads):
   # build up options
   opts = ""
-  opts += (" --runMode genomeGenerate")  
+  opts += (" --runMode genomeGenerate")
   opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex")
   opts += (" --genomeFastaFiles " + str(genome))
-  opts += (" --runThreadN "+str(threads)) 
+  opts += (" --runThreadN "+str(threads))
 
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
@@ -142,7 +142,7 @@ class PersonalizeGenome :
             if '=' in i:
               key,value = i.split('=')
               result[key] = value
-          if (result['VT'] == 'SNP'): 
+          if (result['VT'] == 'SNP'):
             geno = result['SAMPLE'].split(':')[0]
             if '|' in geno:
               g1 = int(geno.split('|')[0])
@@ -190,7 +190,7 @@ class PersonalizeGenome :
 class DiscoverSpliceJunctions :
   def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile):
     self._outDir = outDir
-    self._vcf = os.path.join(vcf,chromosome+'.vcf') 
+    self._vcf = os.path.join(vcf,chromosome+'.vcf')
     self._gtf = gtf
     self._hap1Bam = hap1Bam
     self._hap2Bam = hap2Bam
@@ -242,7 +242,7 @@ class DiscoverSpliceJunctions :
             key,value = i.split('=')
             result[key] = value
         if (result['VT'] == 'SNP'):
-          geno = result['SAMPLE'].split(':')[0] 
+          geno = result['SAMPLE'].split(':')[0]
           if '|' in geno: ## if genotype is phased
             g1 = int(geno.split('|')[0]) ## hap1 genotype
             g2 = int(geno.split('|')[1]) ## hap2 genotype
@@ -256,7 +256,7 @@ class DiscoverSpliceJunctions :
                 vids[int(result['POS'])-1] = result['ID']
     vcf_in.close()
     return v,vids
-    
+
   def read_in_gtf(self):
     gtf_in = open(self._gtf)
     GTF_HEADER  = ['chrom', 'source', 'feature', 'start', 'end', 'score', 'strand', 'frame']
@@ -330,7 +330,7 @@ class DiscoverSpliceJunctions :
       s = "NC"
     else:
       s = "R"
-    return s,strand 
+    return s,strand
 
   def get_junction_coordinates(self,r):
     # get junction coordinates that r spans
@@ -344,7 +344,7 @@ class DiscoverSpliceJunctions :
         continue
       elif cigarType==2: #deletion
         genopos += cigarLength
-      elif cigarType==3: #skipped bases (junction)                            
+      elif cigarType==3: #skipped bases (junction)
         jStart = genopos+1
         jEnd = genopos + cigarLength
         j.append([int(jStart),int(jEnd)])
@@ -353,34 +353,34 @@ class DiscoverSpliceJunctions :
         genopos += cigarLength
       elif cigarType==5: #hard clipping
         genopos += cigarLength
-      else: 
+      else:
         return []
     return j
 
 
   def check_cigar(self,r, allele, p):
-    # checks if read r matches allele a at position p 
-    # return 0 - r is allele specific 
+    # checks if read r matches allele a at position p
+    # return 0 - r is allele specific
     # return 1 - snp falls into intron
     # return 2 - read has non N/M in cigar
-    # return 3 - read is not allele specific  
+    # return 3 - read is not allele specific
     readpos = 0 # keeps track of position in read
     genopos = r.pos #keeps track of position in genome
-    for cigar in  r.cigar: # go through each cigar tuple at a time                              
+    for cigar in  r.cigar: # go through each cigar tuple at a time
       if cigar[0]==0: #match
-      # check if snp in this block of matched bases           
-        if p <= ( genopos + int(cigar[1])): 
+      # check if snp in this block of matched bases
+        if p <= ( genopos + int(cigar[1])):
           readbase = r.seq[p - genopos + readpos] # check the read nt at the position of the snp
           if readbase == allele: # if the read matches allele at p, return 0 (allele specific)
             return 0
         else:
           genopos += int(cigar[1]) # otherwise, continue searching throught the rest of the read
           readpos += int(cigar[1])
-      elif cigar[0]==3: # intron                     
+      elif cigar[0]==3: # intron
         genopos += int(cigar[1])
         if p <= (genopos): # snp falls into intron
           return 1
-      else: #read has non N/M in cigar, throw it out                                              
+      else: #read has non N/M in cigar, throw it out
         return 2
     return 3 # read is not allele specific
 
@@ -391,7 +391,7 @@ class DiscoverSpliceJunctions :
       if tag[0]=='NM': # NM is tag for mismatches
         return int(tag[1])
     return nm
-  
+
 
   def is_unique(self,r):
     # check if read is uniquely mapped
@@ -412,7 +412,7 @@ class DiscoverSpliceJunctions :
     # returns splice site snp in junction start-end
     variant_positions = [p for p in (range(start-1,start+1)+range(end-2,end)) if p in v]
     if len(variant_positions)>0:
-      return ','.join([v[i] for i in variant_positions])
+      return [v[i] for i in variant_positions]
     else:
       return []
 
@@ -426,7 +426,7 @@ class DiscoverSpliceJunctions :
     geneGroup,gtf,geneInfo = self.read_in_gtf()
 
 
-    print hetsnps
+
     for p in sorted(hetsnps):
       if self._rnaedit:
         if p in editpos[self._chromosome]:
@@ -434,51 +434,51 @@ class DiscoverSpliceJunctions :
 
       for pileupcolumn in bam1.pileup('chr'+self._chromosome,int(p),int(p)+1):
         if int(pileupcolumn.pos)== p:
-          for pileupread in pileupcolumn.pileups: 
-            r = pileupread.alignment 
-            snpreads1[r.pos][r.qname].append(p) 
+          for pileupread in pileupcolumn.pileups:
+            r = pileupread.alignment
+            snpreads1[r.pos][r.qname].append(p)
             reads1[r.pos][r.qname] = r
 
       for pileupcolumn in bam2.pileup('chr'+self._chromosome,int(p),int(p)+1):
         if int(pileupcolumn.pos)== p:
           for pileupread in pileupcolumn.pileups:
-            r = pileupread.alignment 
-            snpreads2[r.pos][r.qname].append(p) 
+            r = pileupread.alignment
+            snpreads2[r.pos][r.qname].append(p)
             reads2[r.pos][r.qname] = r
 
     for pos in snpreads1:
-      for qname in snpreads1[pos]: 
-        if qname in snpreads2[pos]: 
+      for qname in snpreads1[pos]:
+        if qname in snpreads2[pos]:
           if self.is_unique(reads1[pos][qname]) and self.is_unique(reads2[pos][qname]):
             if snpreads1[pos][qname]==snpreads2[pos][qname]:
-              check1,check2 = [],[] 
+              check1,check2 = [],[]
               for snp in snpreads1[pos][qname]:
-                check1.append(self.check_cigar(reads1[pos][qname], hetsnps[snp][0], snp)) 
-                check2.append(self.check_cigar(reads2[pos][qname], hetsnps[snp][1], snp)) 
+                check1.append(self.check_cigar(reads1[pos][qname], hetsnps[snp][0], snp))
+                check2.append(self.check_cigar(reads2[pos][qname], hetsnps[snp][1], snp))
               if (((0  in check1+check2) or (3 in check1+check2)) and (2 not in check1+check2)):
                 yes1 = sum([1 if int(i)==0 else 0 for i in check1])
                 yes2 = sum([1 if int(i)==0 else 0 for i in check2])
                 no1 = sum([1 if int(i)==3 else 0 for i in check1])
-                no2 = sum([1 if int(i)==3 else 0 for i in check2]) 
-                mismatch1 = self.num_mismatches(reads1[pos][qname]) 
+                no2 = sum([1 if int(i)==3 else 0 for i in check2])
+                mismatch1 = self.num_mismatches(reads1[pos][qname])
                 mismatch2 = self.num_mismatches(reads2[pos][qname])
                 assignment = 0
-                if ((yes1 > no1) and (mismatch1 < mismatch2)): 
+                if ((yes1 > no1) and (mismatch1 < mismatch2)):
                   hap1.append(qname)
-                elif ((yes2 > no2) and (mismatch2 < mismatch1)): 
+                elif ((yes2 > no2) and (mismatch2 < mismatch1)):
                   hap2.append(qname)
                 else:
                   conflicting.append(qname)
 
     inboth = [r for r in hap1 if r in hap2]
     hap1 = [r for r in hap1 if ((r not in inboth) and (r not in conflicting))]
-    hap2 = [r for r in hap2 if ((r not in inboth) and (r not in conflicting))] 
-    conflicting += inboth 
+    hap2 = [r for r in hap2 if ((r not in inboth) and (r not in conflicting))]
+    conflicting += inboth
     counts = {}
     counts['hap1'] = len(set(hap1))/2
     counts['hap2'] = len(set(hap2))/2
     counts['conflicting'] = len(conflicting)/2
-    
+
     if (self._discoverJunctions):
       bamr = pysam.Samfile(self._refBam,"rb")
       junctions = defaultdict(lambda: defaultdict(set))
@@ -489,7 +489,7 @@ class DiscoverSpliceJunctions :
       conflict1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.conflicting.bam','wb',template=bam1)
       conflict2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.conflicting.bam','wb',template=bam2)
 
-      
+
 
     for r in bam1.fetch('chr'+str(self._chromosome)):
       if self._writeBam:
@@ -505,7 +505,7 @@ class DiscoverSpliceJunctions :
             start,end = j
             junctions['1'][start,end].add(r.pos)
 
-    
+
     for r in bam2.fetch('chr'+self._chromosome):
       if self._writeBam:
         if ( r.qname in hap2):
@@ -520,7 +520,7 @@ class DiscoverSpliceJunctions :
             start,end = j
             junctions['2'][start,end].add(r.pos)
 
-    
+
     if self._discoverJunctions:
       for r in bamr.fetch('chr'+self._chromosome):
         if (r.qname not in conflicting):
@@ -532,7 +532,7 @@ class DiscoverSpliceJunctions :
       nR = {}
       for i in ['1','2','R']:
         nR[i] = {j:len(junctions[i][j]) for j in junctions[i]}
-    
+      #discover hidden splice junction with splice site snps
       spec = {}
       spec['1'] = [j for j in nR['1'] if ((j not in nR['2']) and (j not in nR['R']) and nR['1'][j]>1 and len(self.get_splicesite_snp(start,end,snpids))>0)]
       spec['2'] = [j for j in nR['2'] if ((j not in nR['1']) and (j not in nR['R']) and nR['2'][j]>1 and len(self.get_splicesite_snp(start,end,snpids))>0)]
@@ -541,22 +541,23 @@ class DiscoverSpliceJunctions :
       bed = defaultdict(list)
       for h in ['1','2','R']:
         for start,end in spec[h]:
-          num_overlapping_reads = sum([nR[h][j] for j in nR[h] 
+          num_overlapping_reads = sum([nR[h][j] for j in nR[h]
                                      if ( j[0]<end and j[1]>start and
                                           self.characterize_junctions(self._chromosome,j[0],j[1],geneGroup,gtf,geneInfo)[0]=="R")])
           if num_overlapping_reads > 0:
             freq = float(nR[h][start,end])/float(num_overlapping_reads)
           else:
             freq = 1
+          snp = ",".join(self.get_splicesite_snp(start,end,snpids))
           n_or_r,strand = self.characterize_junctions(self._chromosome,start,end,geneGroup,gtf,geneInfo)
           bed[h].append('chr'+self._chromosome+' '+str(start) + ' ' + str(end) + ' J_'+str(counter)+'_'+n_or_r+'_'+snp+ ' ' + str(strand) + ' ' +str(freq))
 
       for start,end in spec['12']:
-        num_overlapping_reads1 = sum([nR['1'][j] for j in nR['1'] if 
-                                    ( j[0]<end and j[1]>start and 
+        num_overlapping_reads1 = sum([nR['1'][j] for j in nR['1'] if
+                                    ( j[0]<end and j[1]>start and
                                       self.characterize_junctions(self._chromosome,j[0],j[1],geneGroup,gtf,geneInfo)[0]=="R")])
-        num_overlapping_reads2 = sum([nR['2'][j] for j in nR['2'] if 
-                                    ( j[0]<end and j[1]>start and 
+        num_overlapping_reads2 = sum([nR['2'][j] for j in nR['2'] if
+                                    ( j[0]<end and j[1]>start and
                                       self.characterize_junctions(self._chromosome,j[0],j[1],geneGroup,gtf,geneInfo)[0]=="R")])
         if num_overlapping_reads1 == 0:
           freq1=1.0
@@ -567,6 +568,7 @@ class DiscoverSpliceJunctions :
         else:
           freq2 = float(nR['2'][start,end])/float(num_overlapping_reads2)
         n_or_r,strand = self.characterize_junctions(self._chromosome,start,end,geneGroup,gtf,geneInfo)
+        snp = ",".join(self.get_splicesite_snp(start,end,snpids))
         bed['12'].append('chr'+self._chromosome+' '+str(start) + ' ' + str(end) + ' J_'+str(counter)+'_'+n_or_r+'_'+snp+ ' ' + str(strand)+' '+str((freq1+freq2)/2))
       files_dict = {}
       files_dict['1'] = self._outDir + '/hap1.'+self._chromosome+'.specific.bed'
@@ -612,7 +614,7 @@ def main(args) :
             "                                                            \n" +\
             "To run discover, where $ is your prompt:                    \n" +\
             "                                                            \n" +\
-            "$ rPGA run discover -c chrom                                \n" 
+            "$ rPGA run discover -c chrom                                \n"
 
   command = args.command
   if args.T:
@@ -624,7 +626,7 @@ def main(args) :
     mismatches = int(args.N)
   else:
     mismatches = 3
-     
+
   if args.M:
     multimapped = int(args.M)
   else:
@@ -704,7 +706,7 @@ def main(args) :
         hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
         hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
         refBam = outDir+'/REF/STARalign/Aligned.out.sorted.bam'
-        
+
         if multiprocessing:
           import multiprocessing
           CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
@@ -726,7 +728,7 @@ def main(args) :
         sys.stderr.write("Input arguments are not correct\n")
         sys.exit()
       else:
-        discoverJunctions = False        
+        discoverJunctions = False
         writeBam = True
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         gtf = open(".rPGAJunctions.yaml").readline().rstrip()
@@ -739,4 +741,3 @@ def main(args) :
     else :
       sys.stderr.write("rPGA genomes -- unnknown command: " + command + "\n")
       sys.stderr.write(helpStr + "\n\n")
-    
