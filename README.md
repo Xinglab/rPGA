@@ -1,5 +1,5 @@
 ##rPGA: RNA-seq Personal Genome-alignment Analyzer
-                                          ____  _________ 
+                                          ____  _________
                                     _____/ __ \/ ____/   |
                                    / ___/ /_/ / / __/ /| |
                                   / /  / ____/ /_/ / ___ |
@@ -11,8 +11,8 @@
 
 
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
-personal transcriptomes to personal genomes. In version 1.0.1, rPGA will also 
-generate allele specific alignments using the "run alleles" option (see Usage). 
+personal transcriptomes to personal genomes. In version 1.0.1, rPGA will also
+generate allele specific alignments using the "run alleles" option (see Usage).
 
 Overview
 ------------
@@ -59,8 +59,8 @@ STAR must be installed. By default, rPGA expects them to be somewhere in your
 path, but you if they are not you can specify their locations when running the
 configure script (see below).
 
-rPGA makes use of python packages pysam and pybedtools to process STAR output. 
-pysam and pybedtools are their respective dependencies must be installed. 
+rPGA makes use of python packages pysam and pybedtools to process STAR output.
+pysam and pybedtools are their respective dependencies must be installed.
 
 
 Installation
@@ -205,15 +205,38 @@ Finally, rPGA is ready to discover novel splice junctions. To do this run:
 
 rPGA discover parameters:
 
-     -c CHROM        Chromosome to analyze (required) 
-     -b              flag to write allele specific bam files 
-     --conflict      flag to write bam file containing conflicting reads 
+     -c CHROM        Chromosome to analyze (required)
+     -b              flag to write allele specific bam files
+     --conflict      flag to write bam file containing conflicting reads
 
+### Output Files
+rPGA run discover outputs 4 files per chromosome:
+1. hap1.chrom.specific.bed
+2. hap2.chrom.specific.bed
+3. hap1hap2.chrom.specific.bed
+4. ref.chrom.specific.bed
+
+Columns of each bed file are:
+1. chrom
+2. junction start
+3. junction end
+4. name
+5. strand
+6. splice site usage frequency
+
+The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
+- R = junction is in the provided reference annotation
+- NC = novel combination of reference 5' and 3' splice sites
+- N3 = novel 3'SS and reference 5'SS
+- N5 = novel 5'SS and reference 3'SS
+- N35 = both 5'SS and 3'SS are novel
+
+SNPid is a comma deliminated list of splice site SNPs.
 
 Usage: Allele Specific Bam Files
 --------------------------------
 
-To discover hidden splice junctions, rPGA generates allele specific bam files. If 
+To discover hidden splice junctions, rPGA generates allele specific bam files. If
 you are only interested in generating the allele specific bam files, run:
 
     $ rPGA run alleles
@@ -227,7 +250,7 @@ rPGA alleles parameters:
 
 Once you have generated allele specific bam files for all 22 autosomal chromosomes
 or all 22 autosomes, X, and Y, you can merge them into one allele specific bam file
-for each haplotype, hap1.as.bam and hap2.as.bam. 
+for each haplotype, hap1.as.bam and hap2.as.bam.
 
 To merge all 22 autosomes run:
 
@@ -283,21 +306,21 @@ personalized genomes, hap1.fa and hap2.fa.
   * Check the position in the read corresponding to the heterozygous SNP.
 
   * A read is hap1 specific if:
-    1. SNP read base matches the hap1 SNP allele 
+    1. SNP read base matches the hap1 SNP allele
     2. Edit distance to hap1 genome < edit distance to hap2 genome
 
-  * Likewise, a read is hap2 specific if 
+  * Likewise, a read is hap2 specific if
     1. SNP read base matches the hap2 SNP allele
     2. Edit distance to hap2 genome < edit distance to hap1 genome
 
-  * If a read covers multiple heterozygous SNPs, a majority vote is used. For 
-      example, if a read covers 3 heterozygous SNPs and 2 match the hap1 allele 
+  * If a read covers multiple heterozygous SNPs, a majority vote is used. For
+      example, if a read covers 3 heterozygous SNPs and 2 match the hap1 allele
       and 1 matches the hap2 allele AND the edit distance to hap1 < edit distance
       to hap2, the read is assigned to hap1.
 
   * If a read cannot be assigned to either hap1 or hap2 according to the above
       rules, it is considered "conflicting" and is not assigned to either haplotype.
-      To output such conflicting reads, use the --conflict option when running 
+      To output such conflicting reads, use the --conflict option when running
       "discover" or "alleles".
 
 5. Write all hap1 and hap2 specific reads to hap1.as.bam and hap2.as.bam, respectively.   
