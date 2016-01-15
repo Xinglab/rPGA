@@ -373,6 +373,8 @@ class DiscoverSpliceJunctions :
           readbase = r.seq[p - genopos + readpos] # check the read nt at the position of the snp
           if readbase == allele: # if the read matches allele at p, return 0 (allele specific)
             return 0
+          else:
+            return 3 # read is not allele specific 
         else:
           genopos += int(cigar[1]) # otherwise, continue searching throught the rest of the read
           readpos += int(cigar[1])
