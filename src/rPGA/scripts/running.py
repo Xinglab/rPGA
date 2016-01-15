@@ -410,7 +410,7 @@ class DiscoverSpliceJunctions :
 
   def get_splicesite_snp(self,start,end,v):
     # returns splice site snp in junction start-end
-    variant_positions = [p for p in (range(start-1,start+1)+range(end-2,end)) if p in v]
+    variant_positions = [p for p in (range(int(start)-1,int(start)+1)+range(int(end)-2,int(end))) if p in v]
     if len(variant_positions)>0:
       return [v[i] for i in variant_positions]
     else:
@@ -534,10 +534,10 @@ class DiscoverSpliceJunctions :
         nR[i] = {j:len(junctions[i][j]) for j in junctions[i]}
       #discover hidden splice junction with splice site snps
       spec = {}
-      spec['1'] = [j for j in nR['1'] if ((j not in nR['2']) and (j not in nR['R']) and nR['1'][j]>1 and len(self.get_splicesite_snp(start,end,snpids))>0)]
-      spec['2'] = [j for j in nR['2'] if ((j not in nR['1']) and (j not in nR['R']) and nR['2'][j]>1 and len(self.get_splicesite_snp(start,end,snpids))>0)]
-      spec['12'] = [j for j in nR['1'] if ((j in nR['2']) and (j not in nR['R']) and nR['1'][j]>1 and nR['2'][j]>1 and len(self.get_splicesite_snp(start,end,snpids))>0)]
-      spec['R'] = [j for j in nR['R'] if ((j not in nR['1']) and (j not in nR['2'])and nR['R'][j]>1 and len(self.get_splicesite_snp(start,end,snpids))>0)]
+      spec['1'] = [j for j in nR['1'] if ((j not in nR['2']) and (j not in nR['R']) and nR['1'][j]>1 and len(self.get_splicesite_snp(j[0],j[1],snpids))>0)]
+      spec['2'] = [j for j in nR['2'] if ((j not in nR['1']) and (j not in nR['R']) and nR['2'][j]>1 and len(self.get_splicesite_snp(j[0],j[1],snpids))>0)]
+      spec['12'] = [j for j in nR['1'] if ((j in nR['2']) and (j not in nR['R']) and nR['1'][j]>1 and nR['2'][j]>1 and len(self.get_splicesite_snp(j[0],j[1],snpids))>0)]
+      spec['R'] = [j for j in nR['R'] if ((j not in nR['1']) and (j not in nR['2'])and nR['R'][j]>1 and len(self.get_splicesite_snp(j[0],j[1],snpids))>0)]
       bed = defaultdict(list)
       for h in ['1','2','R']:
         for start,end in spec[h]:
