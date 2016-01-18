@@ -233,7 +233,8 @@ The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
 - N5 = novel 5'SS and reference 3'SS
 - N35 = both 5'SS and 3'SS are novel
 
-SNPid is a comma deliminated list of splice site SNPs.
+SNPid is a comma deliminated list of the splice site SNP ids, which match the 
+SNP ids in the given VCF file..
 
 Usage: Allele Specific Bam Files
 --------------------------------
