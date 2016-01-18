@@ -26,6 +26,8 @@ import junctions
 import seqs
 import running
 import argparse
+import running2
+import merge
 def main() :
   """
     This function just performs dispatch on the command line that a user
@@ -40,7 +42,6 @@ def main() :
   parser.add_argument('-c',help='chromsome')
   parser.add_argument('-b',help='flag to write allele specific bam files',action='store_true')
   parser.add_argument('-p',help='multiprocessing flag',action='store_true')
-  parser.add_argument('-a',help='0 - only include allele specific reads (default) \n 1 - also include reads that only align to that haplotype, but not the other \n 2 - also include common reads in allele bam file')
   parser.add_argument('-g',help='flag denoting gzipped reads',action='store_true')
   parser.add_argument('--conflict',help='flag to print conflicting reads',action='store_true')
   parser.add_argument('-M',help="max number of multiple alignments in STAR mapping")
@@ -66,7 +67,7 @@ def main() :
   elif command[0] == "sequences" :
     seqs.main(command[1:])
   elif command[0] == "run" :
-    running.main(args)
+    running2.main(args)
   elif command[0] == "merge":
     merge.main(command[1:])
   else :
