@@ -26,7 +26,7 @@ import junctions
 import seqs
 import running
 import argparse
-import running2
+#import running2
 import merge
 def main() :
   """
@@ -67,7 +67,7 @@ def main() :
   elif command[0] == "sequences" :
     seqs.main(command[1:])
   elif command[0] == "run" :
-    running2.main(args)
+    running.main(args)
   elif command[0] == "merge":
     merge.main(command[1:])
   else :
