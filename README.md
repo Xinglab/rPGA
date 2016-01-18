@@ -11,7 +11,7 @@
 
 
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
-personal transcriptomes to personal genomes. In version 1.0.1, rPGA will also
+personal transcriptomes to personal genomes. As of version 1.0.1, rPGA will also
 generate allele specific alignments using the "run alleles" option (see Usage).
 
 Overview
