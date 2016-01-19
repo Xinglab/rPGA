@@ -167,10 +167,10 @@ command:
 
 rPGA personalize parameters:
 
-     -T int      number of threads to use when building STAR genome, default is 8
-     --rnaedit   flag to N-mask rna editing sites
-     -e FILE     file containing RNA editing sites, can be downloaded from RADAR
-                 (http://rnaedit.com/download/)
+     -T INT          number of threads to use when building STAR genome, default is 8
+     --rnaedit       flag to N-mask rna editing sites
+     -e FILE         file containing RNA editing sites, can be downloaded from RADAR
+                     (http://rnaedit.com/download/)
 
 ** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
      
@@ -196,10 +196,10 @@ depending on the options of the mapper).
 
 rPGA mapping parameters:
 
-     -T	     number of threads STAR uses, default is 8
-     -M      max number of multiple alignments, default is 20
-     -N      max number of read mismatches, default is 3
-     -g	     use if sequence reads are gzipped
+     -T	INT     number of threads STAR uses, default is 8
+     -M INT     max number of multiple alignments, default is 20
+     -N INT     max number of read mismatches, default is 3
+     -g	        use if sequence reads are gzipped
 
 After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
