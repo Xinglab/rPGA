@@ -166,6 +166,7 @@ command:
     $ rPGA run personalize
 
 rPGA personalize parameters:
+
      -T int      number of threads to use when building STAR genome, default is 8
      --rnaedit   flag to N-mask rna editing sites
      -e FILE     file containing RNA editing sites, can be downloaded from RADAR
