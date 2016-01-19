@@ -13,6 +13,8 @@
 rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
 personal transcriptomes to personal genomes. As of version 1.0.1, rPGA will also
 generate allele specific alignments using the "run alleles" option (see Usage).
+As of version 1.1.1, rPGA will N-mask known RNA-editing sites when making the 
+personal genomes (see --rnaedit flag in Usage).  
 
 Overview
 ------------
@@ -164,8 +166,13 @@ command:
     $ rPGA run personalize
 
 rPGA personalize parameters:
-     -T		 number of threads to use when building STAR genome, default is 8
+     -T int      number of threads to use when building STAR genome, default is 8
+     --rnaedit   flag to N-mask rna editing sites
+     -e FILE     file containing RNA editing sites, can be downloaded from RADAR
+                 (http://rnaedit.com/download/)
 
+** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
+     
 The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. To do this, first rPGA needs to know where to find the
 sequenced reads. To add the sequence files run:
@@ -208,6 +215,13 @@ rPGA discover parameters:
      -c CHROM        Chromosome to analyze (required)
      -b              flag to write allele specific bam files
      --conflict      flag to write bam file containing conflicting reads
+     --rnaedit       flag to disregard rna editing sites when assigning reads
+                     to haplotypes
+     -e FILE         file containing RNA editing sites; can be downloaded from
+                     RADAR (www.rnaedit.com/download/)
+
+** Note: if --rnaedit flag is used, a file containing RNA editing events must be
+provided using -e
 
 ### Output Files
 rPGA run discover outputs 4 files per chromosome:
@@ -250,6 +264,13 @@ rPGA alleles parameters:
 
      -c CHROM           Chromosome to be analyzed (required)
      --conflict         flag to write bam file containing conflicting reads
+     --rnaedit          flag to disregard rna editing sites when assigning reads
+                        to haplotypes
+     -e	FILE            file containing RNA editing sites; can be downloaded from
+                        RADAR (www.rnaedit.com/download/)
+
+** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
+provided using -e
 
 Once you have generated allele specific bam files for all 22 autosomal chromosomes
 or all 22 autosomes, X, and Y, you can merge them into one allele specific bam file

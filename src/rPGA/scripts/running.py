@@ -203,7 +203,7 @@ class PersonalizeGenome :
       hap1_out.close()
 
       report_out.write('# number of hap1 SNPs overlapping RNA editing sites: '+ str(editCounter) + '\n')
-      report_out.write('# number of hap1 SNPs not overlapping RNA editing sites' + str(snpCounter) + '\n')
+      report_out.write('# number of hap1 SNPs not overlapping RNA editing sites: ' + str(snpCounter) + '\n')
       report_out.write('# total number of changed bases in hap1: '+str(editCounter + snpCounter) + '\n')
 
       editCounter = 0
@@ -227,7 +227,7 @@ class PersonalizeGenome :
       hap2_out.close()
       
       report_out.write('# number of hap2 SNPs overlapping RNA editing sites: '+ str(editCounter) + '\n')
-      report_out.write('# number of hap2 SNPs not overlapping RNA editing sites' + str(snpCounter) + '\n')
+      report_out.write('# number of hap2 SNPs not overlapping RNA editing sites: ' + str(snpCounter) + '\n')
       report_out.write('# total number of changed bases in hap2: '+str(editCounter + snpCounter) + '\n')
 
     else:
