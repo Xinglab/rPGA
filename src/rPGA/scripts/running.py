@@ -18,7 +18,9 @@
 # this program. If not, see http://www.gnu.org/licenses/.
 
 # standard python imports
-import sys, os
+import sys, os, shutil
+import progressbar
+from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, FileTransferSpeed, FormatLabel, Percentage,  ProgressBar, ReverseBar, RotatingMarker,SimpleProgress, Timer
 import subprocess
 import re,logging,time,datetime,commands,argparse
 from collections import defaultdict
@@ -111,7 +113,7 @@ class PersonalizeGenome :
     self._rnaedit = rnaedit
     self._editFile = editFile
     self._report = os.path.join(outDir,'report.personalize.txt')
-
+    self._widgets = [Percentage(),' Processed: ', Counter(), ' lines (', Timer(), ')']
   def read_reference(self):
     f = defaultdict(list)
     ref_in = open(self._ref)
@@ -128,6 +130,10 @@ class PersonalizeGenome :
 
   def read_in_edit(self):
     edit_in = open(self._editFile)
+    sys.stdout.write('# reading rna-edit file: '+self._editFile+'\n')
+    num_lines = sum(1 for line in open(self._editFile))
+    print num_lines
+#    pbar = ProgressBar(widgets=self._widgets,max_value=num_lines)
     e = defaultdict(list)
     firstline = True
     for line in edit_in:
@@ -144,11 +150,16 @@ class PersonalizeGenome :
     return e
 
   def read_in_vcf(self):
+    sys.stdout.write('# storing vcf files \n')
     CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
     VCF_HEADER = ['CHROM','POS','ID','REF','ALT','QUAL','FILTER','INFO','FORMAT','SAMPLE']
     v1,v2 = defaultdict(lambda: defaultdict(list)),defaultdict(lambda: defaultdict(list))
     for c in CHROMS:
-      vcf_in = open(self._vcf + '/' + c +'.vcf')
+      vcf_fn = self._vcf + '/' + c +'.vcf'
+      vcf_in = open(vcf_fn)
+      sys.stdout.write('# reading in '+vcf_fn+'\n') 
+#      num_lines = sum(1 for line in open(vcf_fn))
+#      pbar = ProgressBar(widgets=self._widgets,max_value=num_lines)
       for line in vcf_in:
         if line.startswith('#'):
           continue
@@ -186,11 +197,13 @@ class PersonalizeGenome :
       hap1_out = open(self._hap1Ref,'w')
       editCounter = 0
       snpCounter = 0
+      edit_snp_sites = []
       for chrom in vcf1:
         for pos in vcf1[chrom]:
           if pos in editSites[chrom]:
             editCounter += 1
             hap1['chr'+chrom][int(pos)-1] = 'N'
+            edit_snp_sites.append('chr'+chrom+' '+str(pos))
           else:
             snpCounter += 1
             ref = vcf1[chrom][pos][0]
@@ -205,16 +218,20 @@ class PersonalizeGenome :
       report_out.write('# number of hap1 SNPs overlapping RNA editing sites: '+ str(editCounter) + '\n')
       report_out.write('# number of hap1 SNPs not overlapping RNA editing sites: ' + str(snpCounter) + '\n')
       report_out.write('# total number of changed bases in hap1: '+str(editCounter + snpCounter) + '\n')
+      report_out.write('# overlapping editing sites and overlapping SNPs in hap1:\n')
+      report_out.write('\n'.join(edit_snp_sites))
 
       editCounter = 0
       snpCounter = 0
       hap2 = self.read_reference()
       hap2_out = open(self._hap2Ref,'w')
+      edit_snp_sites = []
       for chrom in vcf2:
         for pos in vcf2[chrom]:
           if pos in editSites[chrom]:
             editCounter+=1
             hap2['chr'+chrom][int(pos)-1] = 'N'
+            edit_snp_sites.append('chr'+chrom+' '+str(pos))
           else:
             snpCounter += 1
             ref = vcf2[chrom][pos][0]
@@ -229,7 +246,8 @@ class PersonalizeGenome :
       report_out.write('# number of hap2 SNPs overlapping RNA editing sites: '+ str(editCounter) + '\n')
       report_out.write('# number of hap2 SNPs not overlapping RNA editing sites: ' + str(snpCounter) + '\n')
       report_out.write('# total number of changed bases in hap2: '+str(editCounter + snpCounter) + '\n')
-
+      report_out.write('# overlapping editing sites and overlapping SNPs in hap2:\n')
+      report_out.write('\n'.join(edit_snp_sites))
     else:
       hap1 = self.read_reference()
       vcf1,vcf2 = self.read_in_vcf()
@@ -302,7 +320,7 @@ class DiscoverSpliceJunctions :
         result = {}
         for i,col in enumerate(header):
           result[col] = fields[i]
-          e[result['chromosome'][3:]].append(int(result['position'])-1)
+        e[result['chromosome'][3:]].append(int(result['position'])-1)
     return e
 
   def read_in_vcf(self):
@@ -832,8 +850,6 @@ def main(args) :
         STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
         STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
 
-
-
     elif setting == "mapping" :
       if command[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
@@ -847,8 +863,14 @@ def main(args) :
           seqs = ".rPGASeqs.yaml"
           STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
           STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
+          shutil.rmtree(os.path.join(outDir,'HAP1','STARindex'))
+          shutil.rmtree(os.path.join(outDir,'HAP2','STARindex'))
           sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
           sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
+          os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.sam'))
+          os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.sam'))
+          os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.bam'))
+          os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.bam'))
         else:
           sys.stderr.write("Input arguments "+ command+" are not correct\n")
           sys.stderr.write(helpStr + '\n\n')
@@ -861,7 +883,15 @@ def main(args) :
         sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
         sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
         sam_to_sorted_bam(outDir+'/REF/STARalign/Aligned.out')
-        
+        shutil.rmtree(os.path.join(outDir,'HAP1','STARindex'))
+        shutil.rmtree(os.path.join(outDir,'HAP2','STARindex'))
+        shutil.rmtree(os.path.join(outDir,'REF','STARindex'))
+        os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.sam'))
+        os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.sam'))
+        os.remove(os.path.join(outDir,'REF/STARalign/Aligned.out.sam'))
+        os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.bam'))
+        os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.bam'))
+        os.remove(os.path.join(outDir,'REF/STARalign/Aligned.out.bam'))
 
     elif setting == "discover" :
       if command[1].strip().lower() == "help" :

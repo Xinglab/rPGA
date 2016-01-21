@@ -173,6 +173,10 @@ rPGA personalize parameters:
                      (http://rnaedit.com/download/)
 
 ** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
+rPGA will change each RNA editing site to an "N" in the personal genomes. The number
+and locations of RNA editing sites that overlap  SNPs will be reported in 
+report.personalize.txt.
+
      
 The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. To do this, first rPGA needs to know where to find the
@@ -222,7 +226,8 @@ rPGA discover parameters:
                      RADAR (www.rnaedit.com/download/)
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be
-provided using -e
+provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
+RNA editing sites when assigning mapped reads to haplotypes. 
 
 ### Output Files
 rPGA run discover outputs 4 files per chromosome:
@@ -271,7 +276,8 @@ rPGA alleles parameters:
                         RADAR (www.rnaedit.com/download/)
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
-provided using -e
+provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
+RNA editing sites when assigning mapped	reads to haplotypes.
 
 Once you have generated allele specific bam files for all 22 autosomal chromosomes
 or all 22 autosomes, X, and Y, you can merge them into one allele specific bam file
