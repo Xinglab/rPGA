@@ -377,7 +377,7 @@ class DiscoverSpliceJunctions :
               result[key] = value
           if (result['VT'] == 'SNP'):
             geno = result['SAMPLE'].split(':')[0]
-            if '|' in geno: ## if genotype is phased                                                                                                                                                      
+            if '|' in geno: ## if genotype is phased                                                                                                                                                    
               g1 = int(geno.split('|')[0]) ## hap1 genotype                                                                                                                                               
               g2 = int(geno.split('|')[1]) ## hap2 genotype                                                                                                                                               
               alt = result['ALT'].split(',') ## alternate allele(s) in a list                                                                                                                             
@@ -607,7 +607,7 @@ class DiscoverSpliceJunctions :
     snpreads1,snpreads2 = defaultdict(list),defaultdict(list)
     reads1,reads2 = defaultdict(list),defaultdict(list)
     hetsnps,snpids = self.read_in_vcf()
-    geneGroup,gtf,geneInfo = self.read_in_gtf()
+#    geneGroup,gtf,geneInfo = self.read_in_gtf()
     spec1,spec2  = list(),list()
 
     for r in bam1.fetch('chr'+str(self._chromosome)):
@@ -666,6 +666,7 @@ class DiscoverSpliceJunctions :
           conflict2.write(r)
     
     if self._discoverJunctions:
+      geneGroup,gtf,geneInfo = self.read_in_gtf()
       bamr = pysam.Samfile(self._refBam,"rb")
       junctions = defaultdict(lambda: defaultdict(set))
       for qname in reads1:
@@ -846,9 +847,7 @@ def main(args) :
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref,rnaedit,editFile)
         p.personalize_genome()
-        STAR_create_genome(outDir, ref, "REF",threads)
-        STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
-        STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
+
 
     elif setting == "mapping" :
       if command[1].strip().lower() == "help" :
@@ -861,10 +860,18 @@ def main(args) :
       elif len(command) == 3:
         if command[2].strip().lower() == "alleles":
           seqs = ".rPGASeqs.yaml"
+          ref = open(".rPGAGenome.yaml").readline().rstrip()
+          vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+          if not os.path.exists(os.path.join(args[1], "HAP1/STARindex")):
+            os.makedirs(os.path.join(args[1], "HAP1/STARindex"))
+          if not os.path.exists(os.path.join(args[1], "HAP2/STARindex")):
+            os.makedirs(os.path.join(args[1], "HAP2/STARindex"))
+          STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
+          STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
           STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
           STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
-          shutil.rmtree(os.path.join(outDir,'HAP1','STARindex'))
-          shutil.rmtree(os.path.join(outDir,'HAP2','STARindex'))
+#          shutil.rmtree(os.path.join(outDir,'HAP1','STARindex'))
+#          shutil.rmtree(os.path.join(outDir,'HAP2','STARindex'))
           sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
           sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
           os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.sam'))
@@ -877,15 +884,26 @@ def main(args) :
           sys.exit()
       else :
         seqs = ".rPGASeqs.yaml"
+        if not os.path.exists(os.path.join(args[1], "HAP1/STARindex")):
+          os.makedirs(os.path.join(args[1], "HAP1/STARindex"))
+        if not os.path.exists(os.path.join(args[1], "HAP2/STARindex")):
+          os.makedirs(os.path.join(args[1], "HAP2/STARindex"))
+        if not os.path.exists(os.path.join(args[1], "REF/STARindex")):
+          os.makedirs(os.path.join(args[1], "REF/STARindex"))
+        STAR_create_genome(outDir, ref, "REF",threads)
+        STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
+        STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
+        STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
+        STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
         STAR_perform_mapping(outDir, "REF", seqs,threads,mismatches,gzipped,multimapped)
         STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
         STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
         sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
         sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
         sam_to_sorted_bam(outDir+'/REF/STARalign/Aligned.out')
-        shutil.rmtree(os.path.join(outDir,'HAP1','STARindex'))
-        shutil.rmtree(os.path.join(outDir,'HAP2','STARindex'))
-        shutil.rmtree(os.path.join(outDir,'REF','STARindex'))
+#        shutil.rmtree(os.path.join(outDir,'HAP1','STARindex'))
+#        shutil.rmtree(os.path.join(outDir,'HAP2','STARindex'))
+#        shutil.rmtree(os.path.join(outDir,'REF','STARindex'))
         os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.sam'))
         os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.sam'))
         os.remove(os.path.join(outDir,'REF/STARalign/Aligned.out.sam'))
@@ -934,7 +952,7 @@ def main(args) :
         discoverJunctions = False        
         writeBam = True
         vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-        gtf = open(".rPGAJunctions.yaml").readline().rstrip()
+        gtf = ""
         hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
         hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
         refBam = ""
