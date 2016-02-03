@@ -814,8 +814,10 @@ def main(args) :
   else:
     editFile = ""
 
-
+  
   chromosome = args.c
+  if chromosome.startswith('chr'):
+    chromosome = chromsome[3:]
   writeBam = args.b
   multiprocessing = args.p
   gzipped = args.g

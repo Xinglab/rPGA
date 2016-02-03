@@ -6,7 +6,7 @@
                                  /_/  /_/    \____/_/  |_|
 
                                ****************************
-                               *         V 1.1.1          *
+                               *         V 1.1.2          *
                                ****************************
 
 
@@ -220,7 +220,7 @@ Finally, rPGA is ready to discover novel splice junctions. To do this run:
 rPGA discover parameters:
 
      -c CHROM        Chromosome to analyze (required)
-                     Note: should be in the form -c 1 to analyze chromosome 1  
+                     Note: can be in the form -c 1 or -c chr1 to analyze chrom 1  
      -b              flag to write allele specific bam files
      --conflict      flag to write bam file containing conflicting reads
      --rnaedit       flag to disregard rna editing sites when assigning reads
@@ -272,7 +272,7 @@ during the last step instead of running the discover function.
 rPGA alleles parameters:
 
      -c CHROM           Chromosome to be analyzed (required)
-                        Note: should be in the form -c 1 to analyze chromosome 1
+                        Note: can be in the form -c 1 or -c chr1 to analyze chrom 1
      --conflict         flag to write bam file containing conflicting reads
      --rnaedit          flag to disregard rna editing sites when assigning reads
                         to haplotypes

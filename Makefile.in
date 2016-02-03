@@ -28,7 +28,7 @@ uninstall :
 install :
 	rm -rf dist
 	python setup.py sdist
-	pip install --upgrade dist/rPGA-1.1.1.tar.gz
+	pip install --upgrade dist/rPGA-1.1.2.tar.gz
 	rPGA init
 
 ################################################################################
