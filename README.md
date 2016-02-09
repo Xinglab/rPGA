@@ -265,6 +265,7 @@ SNPid is a comma deliminated list of the splice site SNP ids, which match the
 SNP ids in the given VCF file..
 
 If RNA editing flag is used, rPGA will also output:
+
 1. hap1.chrom.rnaedit.bam
 2. hap2.chrom.rnaedit.bam
 
