@@ -6,7 +6,7 @@
                                  /_/  /_/    \____/_/  |_|
 
                                ****************************
-                               *         V 1.1.2          *
+                               *         V 1.2.2          *
                                ****************************
 
 
@@ -75,8 +75,8 @@ location for all users, you may need to prefix these with sudo.
 To begin the installation, unpack the distribution and CD into the newly created
 directory.
 
-    tar -xf rPGA-1.1.1.tar.gz
-    cd rPGA-1.1.1
+    tar -xf rPGA-1.2.2.tar.gz
+    cd rPGA-1.2.2
 
 
 ### Configure ###
@@ -156,6 +156,9 @@ First extract the individual genotype, if necessary:
 Note rPGA requires a separate vcf file for each chromosome. They should be located
 in a directory and named 1.vcf, 2.vcf, 3.vcf,...
 
+Note if your vcf files are gzipped, use -g flag when running personalize, discover, and 
+alleles functions (see Usage). 
+
 and then run:
 
     $ rPGA genotype add /path/to/genotype_directory
@@ -172,7 +175,8 @@ rPGA personalize parameters:
      -T INT          number of threads to use when building STAR genome, default is 8
      --rnaedit       flag to N-mask rna editing sites
      -e FILE         file containing RNA editing sites, can be downloaded from RADAR
-                     (http://rnaedit.com/download/)
+                     (http://rnaedit.com/download)
+     -g              flag if VCF genotype files are gzipped
 
 ** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
 rPGA will change each RNA editing site to an "N" in the personal genomes. The number
@@ -205,7 +209,7 @@ rPGA mapping parameters:
      -T	INT     number of threads STAR uses, default is 8
      -M INT     max number of multiple alignments, default is 20
      -N INT     max number of read mismatches, default is 3
-     -g	        use if sequence reads are gzipped
+     -g	        flag if sequence reads are gzipped
 
 After this step is done, it is time to discover novel junctions, in order to do
 this, rPGA needs to know where to find the known splice junction. To add the
@@ -227,6 +231,7 @@ rPGA discover parameters:
                      to haplotypes
      -e FILE         file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
+     -g              flag if VCF genotype files are gzipped
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
@@ -259,6 +264,11 @@ The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
 SNPid is a comma deliminated list of the splice site SNP ids, which match the 
 SNP ids in the given VCF file..
 
+If RNA editing flag is used, rPGA will also output:
+1. hap1.chrom.rnaedit.bam
+2. hap2.chrom.rnaedit.bam
+
+
 Usage: Allele Specific Bam Files
 --------------------------------
 
@@ -278,6 +288,7 @@ rPGA alleles parameters:
                         to haplotypes
      -e	FILE            file containing RNA editing sites; can be downloaded from
                         RADAR (www.rnaedit.com/download/)
+     -g                 flag if VCF genotype files are gzipped
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
