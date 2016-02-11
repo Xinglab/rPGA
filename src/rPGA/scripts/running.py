@@ -953,7 +953,7 @@ def main(args) :
         refBam = outDir+'/REF/STARalign/Aligned.out.sorted.bam'
         chromosome = args.c
         if chromosome.startswith('chr'):
-          chromosome = chromsome[3:]
+          chromosome = chromosome[3:]
         if multiprocessing:
           import multiprocessing
           CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
@@ -984,7 +984,7 @@ def main(args) :
         refBam = ""
         chromosome = args.c
         if chromosome.startswith('chr'):
-          chromosome = chromsome[3:]
+          chromosome = chromosome[3:]
         p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped)
         p.haplotype_specific_junctions()
 
