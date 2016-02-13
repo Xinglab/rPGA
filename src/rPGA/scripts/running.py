@@ -891,10 +891,10 @@ def main(args) :
           seqs = ".rPGASeqs.yaml"
           ref = open(".rPGAGenome.yaml").readline().rstrip()
           vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-          if not os.path.exists(os.path.join(args[1], "HAP1/STARindex")):
-            os.makedirs(os.path.join(args[1], "HAP1/STARindex"))
-          if not os.path.exists(os.path.join(args[1], "HAP2/STARindex")):
-            os.makedirs(os.path.join(args[1], "HAP2/STARindex"))
+          if not os.path.exists(os.path.join(outDir, "HAP1/STARindex")):
+            os.makedirs(os.path.join(outDir, "HAP1/STARindex"))
+          if not os.path.exists(os.path.join(outDir, "HAP2/STARindex")):
+            os.makedirs(os.path.join(outDir, "HAP2/STARindex"))
           STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
           STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
           STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
@@ -911,12 +911,12 @@ def main(args) :
           sys.exit()
       else :
         seqs = ".rPGASeqs.yaml"
-        if not os.path.exists(os.path.join(args[1], "HAP1/STARindex")):
-          os.makedirs(os.path.join(args[1], "HAP1/STARindex"))
-        if not os.path.exists(os.path.join(args[1], "HAP2/STARindex")):
-          os.makedirs(os.path.join(args[1], "HAP2/STARindex"))
-        if not os.path.exists(os.path.join(args[1], "REF/STARindex")):
-          os.makedirs(os.path.join(args[1], "REF/STARindex"))
+        if not os.path.exists(os.path.join(outDir, "HAP1/STARindex")):
+          os.makedirs(os.path.join(outDir, "HAP1/STARindex"))
+        if not os.path.exists(os.path.join(outDir, "HAP2/STARindex")):
+          os.makedirs(os.path.join(outDir, "HAP2/STARindex"))
+        if not os.path.exists(os.path.join(outDir, "REF/STARindex")):
+          os.makedirs(os.path.join(outDir, "REF/STARindex"))
         STAR_create_genome(outDir, ref, "REF",threads)
         STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
         STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
