@@ -75,8 +75,8 @@ location for all users, you may need to prefix these with sudo.
 To begin the installation, unpack the distribution and CD into the newly created
 directory.
 
-    tar -xf rPGA-1.2.2.tar.gz
-    cd rPGA-1.2.2
+    tar -xf rPGA-1.2.3.tar.gz
+    cd rPGA-1.2.3
 
 
 ### Configure ###
