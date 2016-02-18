@@ -332,17 +332,17 @@ class DiscoverSpliceJunctions :
   def read_in_vcf(self):
     if self._gzipped:
       vcf_in = gzip.open(self._vcf+'.gz')
-      num_lines = sum(1 for line in gzip.open(self._vcf + '.gz'))
+#      num_lines = sum(1 for line in gzip.open(self._vcf + '.gz'))
     else:
       vcf_in = open(self._vcf)
-      num_lines = sum(1 for line in open(self._vcf)) 
-    pbar = ProgressBar(widgets=self._widgets,max_value=num_lines) 
+#      num_lines = sum(1 for line in open(self._vcf)) 
+#    pbar = ProgressBar(widgets=self._widgets,max_value=num_lines) 
     v = defaultdict(list)
     vids = defaultdict(str)
 
     if self._rnaedit:
       editPos = self.read_in_rna_editing()
-      for line in pbar(vcf_in):
+      for line in vcf_in:
         if line.startswith('#'): # skip over header lines
           continue
         else:
