@@ -6,7 +6,7 @@
                                  /_/  /_/    \____/_/  |_|
 
                                ****************************
-                               *         V 1.2.3          *
+                               *         V 1.2.4          *
                                ****************************
 
 
@@ -75,8 +75,8 @@ location for all users, you may need to prefix these with sudo.
 To begin the installation, unpack the distribution and CD into the newly created
 directory.
 
-    tar -xf rPGA-1.2.3.tar.gz
-    cd rPGA-1.2.3
+    tar -xf rPGA-1.2.4.tar.gz
+    cd rPGA-1.2.4
 
 
 ### Configure ###
@@ -232,6 +232,7 @@ rPGA discover parameters:
      -e FILE         file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
      -g              flag if VCF genotype files are gzipped
+     --printall      flag to include non-haplotype specific reads in bam output file
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
@@ -290,6 +291,7 @@ rPGA alleles parameters:
      -e	FILE            file containing RNA editing sites; can be downloaded from
                         RADAR (www.rnaedit.com/download/)
      -g                 flag if VCF genotype files are gzipped
+     --printall         flag to include non-haplotype specific reads in bam output file
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap

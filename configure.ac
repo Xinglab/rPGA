@@ -1,4 +1,4 @@
-AC_INIT(rPGA, 1.2.3)
+AC_INIT(rPGA, 1.2.4)
 
 # Allow the user to specify the path for Python
 AC_ARG_WITH(python, [ --with-python       specify the location of python ])

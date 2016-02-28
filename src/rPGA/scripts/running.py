@@ -291,7 +291,7 @@ class PersonalizeGenome :
     return
 
 class DiscoverSpliceJunctions :
-  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped):
+  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall):
     self._outDir = outDir
     self._vcf = os.path.join(vcf,chromosome+'.vcf') 
     self._gtf = gtf
@@ -309,8 +309,9 @@ class DiscoverSpliceJunctions :
     self._editFile = editFile
     self._report = os.path.join(outDir, "report."+chromosome+".txt")
     self._gzipped = gzipped
+    self._printall = printall
     self._widgets = [Percentage(),' Processed: ', Counter(), ' lines (', Timer(), ')']
-
+    
   def read_in_rna_editing(self):
     logging.info('reading in rna editing events')
     e = defaultdict(list)
@@ -396,7 +397,7 @@ class DiscoverSpliceJunctions :
               alt = result['ALT'].split(',') ## alternate allele(s) in a list                                                                                                                             
               alleles = [result['REF']] + alt ## [ref, alt1, alt2,...]                                                                                                                                    
               if ( re.match(r'[ACGT]',alleles[0]) and re.match(r'[ACGT]',alleles[g1]) and re.match(r'[ACGT]',alleles[g2])): ## make sure ref and alt alleles are A,C,T,or G                               
-                if (g1!=g2): # heterozygous snp                                                                                                                                                           
+                if (g1!=g2): # heterozygous snp                                                                                                                                            
                   v[int(result['POS'])-1] = [alleles[g1],alleles[g2]] ## subtract one from position (1 based) to match bam file (0 based)                                                                 
                   vids[int(result['POS'])-1] = result['ID']
                 else:
@@ -586,8 +587,9 @@ class DiscoverSpliceJunctions :
       return []
 
   def haplotype_specific_read(self,r,v,h,e):
-    # return 0 = hap spec, 1 = not hap spec, 2 = conflicting, 3 = multimapped, 4 = rnaedit
+    # return 0 = hap spec, 1 = not hap spec, 2 = conflicting, 3 = multimapped, 4 = rnaedit,  5 = doesn't cover het snp, 6 = read contains indel or softclipping
     if not self.is_unique(r):
+#      print '3:', r
       return 3
     readpos = 0
     genopos = r.pos
@@ -602,18 +604,25 @@ class DiscoverSpliceJunctions :
       elif cigarType==3:
         genopos += cigarLength
       else:
-        return 1
+#        print '1:', r
+        return 6
     if len(edit)>0:
+#      print '4:', r
       return 4
     elif len(snps)==0:
-      return 1
+#      print '5:', r
+      return 5
     else:
       check = [self.check_cigar(r, v[p][h], p) for p in snps]
+#      print snps, check
       if check.count(0)>check.count(3):
+#        print '0:', r
         return 0
       elif check.count(0)==check.count(3):
+#        print '2:', r
         return 2
       else:
+#        print '1:', r
         return 1
 
       
@@ -647,9 +656,16 @@ class DiscoverSpliceJunctions :
     print "## assigning specific reads"
     for qname in snpreads1[0]:
       if qname in reads2:
+#        print qname,[i.pos for i in reads1[qname]],[i.pos for i in reads2[qname]]
         if all([True if reads1[qname][i].pos==reads2[qname][i].pos else False for i in range(len(reads1[qname]))]): # reads have same starting position in hap1 and hap2
+#          print "True"
           if self.num_mismatches(reads1[qname][0]) < self.num_mismatches(reads2[qname][0]):
+#            print "haplotype specific"
             spec1.append(qname)
+#          else:
+#            print "not haplotype specific"
+#        else:
+#          print "False"
     
     for qname in snpreads2[0]:
       if qname in reads1:
@@ -667,6 +683,7 @@ class DiscoverSpliceJunctions :
     report_out.write('# ' + self._chromosome + '\t' + 'conflicting' +'\t' + str(conflictCount) + '\n')
 
     if self._rnaedit:
+      print "printing rna editing file"
       edit1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.rnaedit.bam','wb',template=bam1)
       edit2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.rnaedit.bam','wb',template=bam2)
       for qname in snpreads1[4]:
@@ -677,6 +694,7 @@ class DiscoverSpliceJunctions :
           edit2.write(r)
 
     if self._writeBam:
+      print "## printing bam file"
       out1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.bam','wb',template=bam1)
       out2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.bam','wb',template=bam2)
       for qname in spec1:
@@ -685,8 +703,17 @@ class DiscoverSpliceJunctions :
       for qname in spec2:
         for r in reads2[qname]:
           out2.write(r)
+      
+      if self._printall: # print all reads that dont cover het snps
+        for qname in snpreads1[5]:
+          for r in reads1[qname]:
+            out1.write(r)
+        for qname in snpreads2[5]:
+          for r in reads2[qname]:
+            out2.write(r)
 
     if self._conflicting:
+      print "## printing conflicting file"
       conflict1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.conflicting.bam','wb',template=bam1)
       conflict2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.conflicting.bam','wb',template=bam2)
       for qname in conflicting:
@@ -844,7 +871,7 @@ def main(args) :
   else:
     editFile = ""
 
-  
+  printall = args.printall
   writeBam = args.b
   multiprocessing = args.p
   gzipped = args.g
@@ -965,7 +992,7 @@ def main(args) :
             p.join()
 
         else:
-          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped)
+          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall)
           p.haplotype_specific_junctions()
 
     elif setting == "alleles":
@@ -986,7 +1013,7 @@ def main(args) :
         chromosome = args.c
         if chromosome.startswith('chr'):
           chromosome = chromosome[3:]
-        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped)
+        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall)
         p.haplotype_specific_junctions()
 
     else :

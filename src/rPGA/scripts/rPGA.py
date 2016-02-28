@@ -47,6 +47,7 @@ def main() :
   parser.add_argument('-M',help="max number of multiple alignments in STAR mapping")
   parser.add_argument('-e',help="file containing RNA editing positions, downloaded from RADAR")
   parser.add_argument('--rnaedit',help="flag to check for RNA editing events, must also provide an RNA editing file usng -e parameter",action="store_true")
+  parser.add_argument('--printall',help="flag to print all non haplotype specific reads in bam file output",action='store_true')
   args = parser.parse_args()
   command = args.command
   
