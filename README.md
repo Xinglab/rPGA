@@ -135,7 +135,6 @@ hidden splice junctions.
 ### Personalize Genome ###
 
 Inputs:
-
   1. Reference genome (FASTA)
   2. Directory containing VCF files, one per chromosome
 
@@ -184,9 +183,8 @@ and locations of RNA editing sites that overlap  SNPs will be reported in
 report.personalize.txt.
 
 Outputs:
-
-1. output_directory/hap1.fa (hap1 personal genome)
-2. output_directory/hap2.fa (hap2 personal genome)
+  1. output_directory/hap1.fa (hap1 personal genome)
+  2. output_directory/hap2.fa (hap2 personal genome)
 
 ### RNA-seq Alignment ###
 
@@ -194,9 +192,8 @@ The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. 
 
 Inputs:
-
-1. Reference genome (FASTA)
-2. Read sequences (FASTQ), single or paired end
+  1. Reference genome (FASTA)
+  2. Read sequences (FASTQ), single or paired end
 
 Please note that we chose STAR for faster alignment, but
 that obviously comes at a cost, and that is the required memory. Make sure you
@@ -220,22 +217,21 @@ rPGA mapping options:
 * Required parameters
 
 Outputs:
-
-1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
-2. output_directory/HAP1/STARalign/Aligned.out.sorted.bam.bai
-3. output_directory/HAP2/STARalign/Aligned.out.sorted.bam
-4. output_directory/HAP2/STARalign/Aligned.out.sorted.bam.bai
-5. output_directory/REF/STARalign/Aligned.out.sorted.bam
-6. output_directory/REF/STARalign/Aligned.out.sorted.bam.bai
+  1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
+  2. output_directory/HAP1/STARalign/Aligned.out.sorted.bam.bai
+  3. output_directory/HAP2/STARalign/Aligned.out.sorted.bam
+  4. output_directory/HAP2/STARalign/Aligned.out.sorted.bam.bai
+  5. output_directory/REF/STARalign/Aligned.out.sorted.bam
+  6. output_directory/REF/STARalign/Aligned.out.sorted.bam.bai
 
 ### Discover hidden splice junctions ###
 
 The final step is to discover novel junctions using the discover function.
 
 Inputs:
-1. Chromosome to be analyzed
-2. Annotation file (GTF)
-3. Genotype directory containing VCF files
+  1. Chromosome to be analyzed
+  2. Annotation file (GTF)
+  3. Genotype directory containing VCF files
 
 Usage:
 
@@ -274,20 +270,18 @@ files, rPGA will use the alignments in HAP1/STARalign, HAP2/STARalign, REF/STARa
 Outputs (per chromosome): 
 
 Haplotype specific bed files:
-
-1. hap1.chrom.specific.bed
-2. hap2.chrom.specific.bed
-3. hap1hap2.chrom.specific.bed
-4. ref.chrom.specific.bed
+  1. hap1.chrom.specific.bed
+  2. hap2.chrom.specific.bed
+  3. hap1hap2.chrom.specific.bed
+  4. ref.chrom.specific.bed
 
 Columns of each bed file are:
-
-1. chrom
-2. junction start
-3. junction end
-4. name
-5. strand
-6. splice site usage frequency
+  1. chrom
+  2. junction start
+  3. junction end
+  4. name
+  5. strand
+  6. splice site usage frequency
 
 The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
 - R = junction is in the provided reference annotation
@@ -300,17 +294,16 @@ SNPid is a comma deliminated list of the splice site SNP ids, which match the
 SNP ids in the given VCF file..
 
 If —-rnaedit is used, rPGA will also output bam files containing reads 
-that overlap RNA editing sites
-
-1. hap1.chrom.rnaedit.bam
-2. hap2.chrom.rnaedit.bam
+that overlap RNA editing sites:
+  1. hap1.chrom.rnaedit.bam
+  2. hap2.chrom.rnaedit.bam
 
 If —-writeBam flag is used, rPGA will output allele specific bam files:
-1. hap1.chrom.bam
-2. hap2.chrom.bam
+  1. hap1.chrom.bam
+  2. hap2.chrom.bam
 
 If --consensus flag is used, rPGA will output one consensus bam file:
-1. consensus.chrom.bam
+  1. consensus.chrom.bam
 
 Usage: Allele Specific Bam Files
 --------------------------------
@@ -322,8 +315,8 @@ this pipeline if you are only interested in generating the allele specific bam f
 ### Personalize Genome ###
 
 Inputs:
-1. Reference genome (FASTA)
-2. Directory containing VCF files, one per chromosome
+  1. Reference genome (FASTA)
+  2. Directory containing VCF files, one per chromosome
 
 Download the reference sequences for the species from
 http://hgdownload.cse.ucsc.edu/downloads.html.
@@ -370,8 +363,8 @@ and locations of RNA editing sites that overlap  SNPs will be reported in
 report.personalize.txt.
 
 Outputs:
-1. output_directory/hap1.fa (hap1 personal genome)
-2. output_directory/hap2.fa (hap2 personal genome)
+  1. output_directory/hap1.fa (hap1 personal genome)
+  2. output_directory/hap2.fa (hap2 personal genome)
 
 ### RNA-seq Alignment ###
 
@@ -379,8 +372,8 @@ The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. 
 
 Inputs:
-1. Reference genome (FASTA)
-2. Read sequences (FASTQ), single or paired end
+  1. Reference genome (FASTA)
+  2. Read sequences (FASTQ), single or paired end
 
 Please note that we chose STAR for faster alignment, but
 that obviously comes at a cost, and that is the required memory. Make sure you
@@ -414,13 +407,13 @@ Outputs:
 Finally, assign mapped reads to hap1 or hap2 using alleles function. 
 
 Inputs:
-1. Chromosome to analyze
-2. Directory containing one VCF files
+  1. Chromosome to analyze
+  2. Directory containing one VCF files
 
 Outputs:
-1. hap1.chrom.bam
-2. hap2.chrom.bam
-3. report.chrom.txt
+  1. hap1.chrom.bam
+  2. hap2.chrom.bam
+  3. report.chrom.txt
 
 Usage:
 	
