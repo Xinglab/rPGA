@@ -310,6 +310,10 @@ Usage: Allele Specific Bam Files
 
 To discover hidden splice junctions, rPGA generates allele specific bam files. Follow
 this pipeline if you are only interested in generating the allele specific bam files.
+There are three steps: 1) Personalize reference genome, 2) Align RNA-seq reads to personal
+genomes, and 3) Assign haplotype specific reads. Note, if you wish to provide your own 
+personal haplotype alignments, you may bypass steps (1) and (2) and use the -b1 and -b2 
+options in step 3 (See description of parameters below).
 
 
 ### Personalize Genome ###
