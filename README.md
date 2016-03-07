@@ -6,7 +6,7 @@
                                  /_/  /_/    \____/_/  |_|
 
                                ****************************
-                               *         V 1.2.4          *
+                               *         V 1.3.4          *
                                ****************************
 
 
@@ -64,8 +64,14 @@ configure script (see below).
 rPGA makes use of python packages pysam and pybedtools to process STAR output.
 pysam and pybedtools are their respective dependencies must be installed.
 
+Table of contents
+-----------------
+1. Installing rPGA
+2. Usage - Discover hidden splice junctions
+3. Usage - Allele specific alignment
+4. Contacts and bug reports
 
-Installation
+1. Installation
 ------------
 All of the below installation instructions assume you have write access to the
 installation directory for rPGA; if you want to install into a central
@@ -78,6 +84,10 @@ directory.
     tar -xf rPGA-1.2.4.tar.gz
     cd rPGA-1.2.4
 
+Or, clone from the github repository.
+
+    git clone https://github.com/Xinglab/rPGA.git
+    cd rPGA	
 
 ### Configure ###
  Now type
@@ -114,19 +124,19 @@ variable to include these directories, but it is not required. All of the
 below instructions assume these directories are in your PATH variable; if not,
 replace the names of the scripts/executable with their full path.
 
-Usage: Discover Hidden Splice Junctions
----------------------------------------
+2. Usage: Discover Hidden Splice Junctions
+------------------------------------------
 
-Before you can begin working on a project with rPGA, you need to initialize the
-project directory. To do this, run:
+This is the pipeline to discover splice junctions that are hidden when aligning
+an individual's transcript reads to the hg19 reference genome. There are three steps 
+in the pipeline, 1. personalizing the genome, 2. aligning reads, and 3. discovering
+hidden splice junctions.
 
-    $ rPGA init project name
+### Personalize Genome ###
 
-Note, each rPGA project should be in a separate directory. 
-
-For each genome, rPGA needs to know where to find A fasta file with the full
-genome, one chromosome per sequence. To add a genome called hg19, where $ is
-your prompt:
+Inputs:
+1. Reference genome (FASTA)
+2. Directory containing VCF files, one per chromosome
 
 Download the reference sequences for the species from
 http://hgdownload.cse.ucsc.edu/downloads.html.
@@ -136,110 +146,130 @@ For example
 
     $ cat \*.fa > ~/rPGAGenomes/hg19/hg19.fa
 
-and then run:
-
-    $ rPGA genomes add /path/to/genome
-
 For any individual, rPGA needs to know where to find a vcf file with the
 genotype. vcf files with multiple samples, such as the 1000 Genomes vcf files,
 must be split it into separate files for each individual. This is easily done
 using bcftools, which can be downloaded from
 https://github.com/samtools/bcftools/wiki/HOWTOs.
 
-To add a genotype, where $ is your prompt:
-
-First extract the individual genotype, if necessary:
+To extract the individual genotype, if necessary:
 
     $ bcftools view -s sample_name -v snps -p /path/to/ALL.chr.genotypes.vcf > \
     sample.chr.genotype.vcf
 
 Note rPGA requires a separate vcf file for each chromosome. They should be located
-in a directory and named 1.vcf, 2.vcf, 3.vcf,...
-
-Note if your vcf files are gzipped, use -g flag when running personalize, discover, and 
-alleles functions (see Usage). 
-
-and then run:
-
-    $ rPGA genotype add /path/to/genotype_directory
-
-Where 1.vcf, 2.vcf, 3.vcf are located in genotype_directory
+in a directory and named 1.vcf, 2.vcf, 3.vcf,... 
 
 At this step rPGA is ready to make the personalized genome. To do this run this
 command:
 
-    $ rPGA run personalize
+    $ rPGA run personalize -r reference.fa -v genotype_directory -o output_directory
 
-rPGA personalize parameters:
+rPGA personalize options:
 
-     -T INT          number of threads to use when building STAR genome, default is 8
+     -o *            output directory
+     -r *            reference genome
+     -v *            VCF directory
+     —-gz            flag denoting VCF files are gzipped 
      --rnaedit       flag to N-mask rna editing sites
-     -e FILE         file containing RNA editing sites, can be downloaded from RADAR
+     -e              file containing RNA editing sites, can be downloaded from RADAR
                      (http://rnaedit.com/download)
-     -g              flag if VCF genotype files are gzipped
+
+* Required parameters
 
 ** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
 rPGA will change each RNA editing site to an "N" in the personal genomes. The number
 and locations of RNA editing sites that overlap  SNPs will be reported in 
 report.personalize.txt.
 
-     
+Outputs:
+1. output_directory/hap1.fa (hap1 personal genome)
+2. output_directory/hap2.fa (hap2 personal genome)
+
+### RNA-seq Alignment ###
+
 The next step is to map the sequencing data to the personalized genome using
-STAR alignment tool. To do this, first rPGA needs to know where to find the
-sequenced reads. To add the sequence files run:
+STAR alignment tool. 
 
-    $ rPGA sequences add /path/to/sequences.fastq
+Inputs:
+1. Reference genome (FASTA)
+2. Read sequences (FASTQ), single or paired end
 
-If you have paired end data add the sequences in one line right after each
-other, for example:
-
-    $ rPGA sequences add /path/to/sequences_mate_1.fastq /path/to/sequences_mate_2.fastq
-
-Then you can run:
-
-    $ rPGA run mapping
-
-to perform the mapping. Please note that we chose STAR for faster alignment, but
+Please note that we chose STAR for faster alignment, but
 that obviously comes at a cost, and that is the required memory. Make sure you
-have enough memory on your computer that is running the STAR (~ 16-28 GB,
+have enough memory on your computer that is running the STAR (~ 32 GB,
 depending on the options of the mapper).
 
-rPGA mapping parameters:
+To align reads to personal genomes:
 
-     -T	INT     number of threads STAR uses, default is 8
-     -M INT     max number of multiple alignments, default is 20
-     -N INT     max number of read mismatches, default is 3
-     -g	        flag if sequence reads are gzipped
+    $ rPGA run mapping -g reference.fa -s reads_1.fastq,[reads_2.fastq]
 
-After this step is done, it is time to discover novel junctions, in order to do
-this, rPGA needs to know where to find the known splice junction. To add the
-know splice junctions, you can run:
+rPGA mapping options:
 
-    $ rPGA junctions add /path/to/known_splice_junctions
+     -r *       reference genome (Fasta)
+     -s *       read sequences, either single or paired end
+     -o *       output directory 
+     -T	        number of threads STAR uses, default is 8
+     -M         max number of multiple alignments, default is 20
+     -N         max number of read mismatches, default is 3
+     —-gz       flag denoting sequence reads are gzipped
 
-Finally, rPGA is ready to discover novel splice junctions. To do this run:
+* Required parameters
 
-    $ rPGA run discover
+Outputs:
+1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
+2. output_directory/HAP1/STARalign/Aligned.out.sorted.bam.bai
+3. output_directory/HAP2/STARalign/Aligned.out.sorted.bam
+4. output_directory/HAP2/STARalign/Aligned.out.sorted.bam.bai
+5. output_directory/REF/STARalign/Aligned.out.sorted.bam
+6. output_directory/REF/STARalign/Aligned.out.sorted.bam.bai
 
-rPGA discover parameters:
+### Discover hidden splice junctions ###
 
-     -c CHROM        Chromosome to analyze (required)
+The final step is to discover novel junctions using the discover function.
+
+Inputs:
+1. Chromosome to be analyzed
+2. Annotation file (GTF)
+3. Genotype directory containing VCF files
+
+Usage:
+
+    $ rPGA run discover -c CHROM -g annotation.gtf -v genotype_directory -o output
+
+rPGA discover options:
+
+     -c *            Chromosome to analyze (required)
                      Note: can be in the form -c 1 or -c chr1 to analyze chrom 1  
-     -b              flag to write allele specific bam files
+     -g *            Annotation file (GTF)
+     -v *            Genotype directory (VCF)
+     -o *            Output directory
+     —-writeBam      flag to write allele specific bam files
      --conflict      flag to write bam file containing conflicting reads
-     --rnaedit       flag to disregard rna editing sites when assigning reads
-                     to haplotypes
-     -e FILE         file containing RNA editing sites; can be downloaded from
+     --rnaedit **    flag to consider rna editing sites 
+     -e **           file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
-     -g              flag if VCF genotype files are gzipped
+     —-gz            flag denoting VCF genotype files are gzipped
      --printall      flag to include non-haplotype specific reads in bam output file
+     —-consensus     flag to print consensus BAM file (described below)
+     -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
+     -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
+     -br ***         Reference alignment file to reference genome (BAM)
+
+* Required parameters
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
-RNA editing sites when assigning mapped reads to haplotypes. 
+RNA editing sites when assigning mapped reads to haplotypes. Reads that cover RNA editing 
+sites will be printed to hap1.chrom.rnaedit.bam and hap2.chrom.rnaedit.bam
 
-### Output Files
-rPGA run discover outputs 4 files per chromosome:
+*** Use these if you would like to supply your own personal genome mapping alignment files. 
+If rPGA run mapping (previous step) is used there is no need to provide rPGA the alignment 
+files, rPGA will use the alignments in HAP1/STARalign, HAP2/STARalign, REF/STARalign. 
+
+Outputs (per chromosome): 
+
+Haplotype specific bed files:
 
 1. hap1.chrom.specific.bed
 2. hap2.chrom.specific.bed
@@ -265,47 +295,167 @@ The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
 SNPid is a comma deliminated list of the splice site SNP ids, which match the 
 SNP ids in the given VCF file..
 
-If RNA editing flag is used, rPGA will also output:
+If —-rnaedit is used, rPGA will also output bam files containing reads 
+that overlap RNA editing sites
 
 1. hap1.chrom.rnaedit.bam
 2. hap2.chrom.rnaedit.bam
 
+If —-writeBam flag is used, rPGA will output allele specific bam files:
+1. hap1.chrom.bam
+2. hap2.chrom.bam
+
+If --consensus flag is used, rPGA will output one consensus bam file:
+1. consensus.chrom.bam
 
 Usage: Allele Specific Bam Files
 --------------------------------
 
-To discover hidden splice junctions, rPGA generates allele specific bam files. If
-you are only interested in generating the allele specific bam files, run:
+To discover hidden splice junctions, rPGA generates allele specific bam files. Follow
+this pipeline if you are only interested in generating the allele specific bam files.
 
-    $ rPGA run alleles
 
-during the last step instead of running the discover function.
+### Personalize Genome ###
 
-rPGA alleles parameters:
+Inputs:
+1. Reference genome (FASTA)
+2. Directory containing VCF files, one per chromosome
 
-     -c CHROM           Chromosome to be analyzed (required)
-                        Note: can be in the form -c 1 or -c chr1 to analyze chrom 1
-     --conflict         flag to write bam file containing conflicting reads
-     --rnaedit          flag to disregard rna editing sites when assigning reads
-                        to haplotypes
-     -e	FILE            file containing RNA editing sites; can be downloaded from
-                        RADAR (www.rnaedit.com/download/)
-     -g                 flag if VCF genotype files are gzipped
-     --printall         flag to include non-haplotype specific reads in bam output file
+Download the reference sequences for the species from
+http://hgdownload.cse.ucsc.edu/downloads.html.
+
+Concatenate all the files from the different chromosome into one single file.
+For example
+
+    $ cat \*.fa > ~/rPGAGenomes/hg19/hg19.fa
+
+For any individual, rPGA needs to know where to find a vcf file with the
+genotype. vcf files with multiple samples, such as the 1000 Genomes vcf files,
+must be split it into separate files for each individual. This is easily done
+using bcftools, which can be downloaded from
+https://github.com/samtools/bcftools/wiki/HOWTOs.
+
+To extract the individual genotype, if necessary:
+
+    $ bcftools view -s sample_name -v snps -p /path/to/ALL.chr.genotypes.vcf > \
+    sample.chr.genotype.vcf
+
+Note rPGA requires a separate vcf file for each chromosome. They should be located
+in a directory and named 1.vcf, 2.vcf, 3.vcf,... 
+
+At this step rPGA is ready to make the personalized genome. To do this run this
+command:
+
+    $ rPGA run personalize -r reference.fa -v genotype_directory -o output_directory
+
+rPGA personalize options:
+
+     -o *            output directory
+     -r *            reference genome
+     -v *            VCF directory
+     --gz            flag denoting VCF files are gzipped 
+     --rnaedit       flag to N-mask rna editing sites
+     -e              file containing RNA editing sites, can be downloaded from RADAR
+                     (http://rnaedit.com/download)
+
+* Required parameters
+
+** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
+rPGA will change each RNA editing site to an "N" in the personal genomes. The number
+and locations of RNA editing sites that overlap  SNPs will be reported in 
+report.personalize.txt.
+
+Outputs:
+1. output_directory/hap1.fa (hap1 personal genome)
+2. output_directory/hap2.fa (hap2 personal genome)
+
+### RNA-seq Alignment ###
+
+The next step is to map the sequencing data to the personalized genome using
+STAR alignment tool. 
+
+Inputs:
+1. Reference genome (FASTA)
+2. Read sequences (FASTQ), single or paired end
+
+Please note that we chose STAR for faster alignment, but
+that obviously comes at a cost, and that is the required memory. Make sure you
+have enough memory on your computer that is running the STAR (~ 32 GB,
+depending on the options of the mapper).
+
+To align reads to personal genomes:
+
+    $ rPGA run mapping alleles -g reference.fa -s reads_1.fastq,[reads_2.fastq]
+
+rPGA mapping options:
+
+     -r *       reference genome (Fasta)
+     -s *       read sequences, either single or paired end
+     -o *       output directory 
+     -T	        number of threads STAR uses, default is 8
+     -M         max number of multiple alignments, default is 20
+     -N         max number of read mismatches, default is 3
+     --gz       flag denoting sequence reads are gzipped
+
+* Required parameters
+
+Outputs:
+1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
+2. output_directory/HAP1/STARalign/Aligned.out.sorted.bam.bai
+3. output_directory/HAP2/STARalign/Aligned.out.sorted.bam
+4. output_directory/HAP2/STARalign/Aligned.out.sorted.bam.bai
+
+### Allele Specific Assignment ###
+
+Finally, assign mapped reads to hap1 or hap2 using alleles function. 
+
+Inputs:
+1. Chromosome to analyze
+2. Directory containing one VCF files
+
+Outputs:
+1. hap1.chrom.bam
+2. hap2.chrom.bam
+3. report.chrom.txt
+
+Usage:
+	
+    $ rPGA run alleles -c CHROM -v genotype_directory -o output_directory
+
+rPGA alleles options:
+
+     -c *           Chromosome to be analyzed (C or -chrC to analyze chrom C)
+     -v *           Genotype directory containing VCF files
+     -o *           Output directory
+     --conflict     flag to write bam file containing conflicting reads
+     --rnaedit **   flag to consider rna editing sites 
+     -e	**           file containing RNA editing sites; can be downloaded from
+                     RADAR (www.rnaedit.com/download/)
+     --gz            flag denoting VCF genotype files are gzipped
+     --printall      flag to include non-haplotype specific reads in bam output file
+     --consensus     flag to print consensus bam file
+     -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
+     -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
+    
+* Required parameter
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
 RNA editing sites when assigning mapped	reads to haplotypes.
 
+*** Use these if you would like to supply your own personal genome mapping alignment files. 
+If rPGA run mapping (previous step) is used there is no need to provide rPGA the alignment 
+files, rPGA will use the alignments in HAP1/STARalign and HAP2/STARalign.
+
 Once you have generated allele specific bam files for all 22 autosomal chromosomes
-or all 22 autosomes, X, and Y, you can merge them into one allele specific bam file
-for each haplotype, hap1.as.bam and hap2.as.bam.
+or all 22 autosomes and X, you can merge them into one allele specific bam file
+for each haplotype, hap1.bam and hap2.bam.
 
 To merge all 22 autosomes run:
 
     $ rPGA merge auto
 
-To merge all 22 autosome, X, and Y, run:
+To merge all 22 autosome and X:
 
     $ rPGA merge all
 
@@ -372,9 +522,31 @@ personalized genomes, hap1.fa and hap2.fa.
       To output such conflicting reads, use the --conflict option when running
       "discover" or "alleles".
 
-5. Write all hap1 and hap2 specific reads to hap1.as.bam and hap2.as.bam, respectively.   
+5. Write all hap1 and hap2 specific reads to hap1.bam and hap2.bam, respectively.   
 
+Note, rPGA adds up to 4 SAM tags:
 
+1. HT: denotes which haplotype read originates from (1 or 2)
+2. SP: comma deliminated list of heterozygous SNP positions the read covers
+3. GT: denotes whether the read contains the reference or alternate allele(s) for the
+SNP(s) in SP
+4. EP: comma deliminated list of RNA editing positions the read covers (if used —-rnaedit)
+
+### Consensus BAM file ###
+
+The consensus BAM file is a single BAM file that contains the best matching reads based on
+the haplotype assignment + non heterozygous reads alignments. It consists of reads obtained 
+by the following procedure:
+
+1. Reads that uniquely map to one haplotype or the other.
+2. Choose read that maps better to one haplotype (due to heterozygous SNP)
+3. Randomly choose a read if the read has the same alignment to both haplotypes.
+4. Randomly choose a read if the read is conflicting. 
+5. Disregard reads that map to different locations in each haplotype, or are multiply mapped.
+
+These comparisons are made for every read that is aligned. For example, if your initial fastq
+file contains 100 million reads, there would be 100 million reads in the consensus BAM file, 
+minus the reads discarded in step 5. 
 
 Enjoy!
 

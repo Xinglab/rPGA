@@ -22,7 +22,7 @@ import sys, os, shutil,gzip
 import progressbar
 from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, FileTransferSpeed, FormatLabel, Percentage,  ProgressBar, ReverseBar, RotatingMarker,SimpleProgress, Timer
 import subprocess
-import re,logging,time,datetime,commands,argparse
+import re,logging,time,datetime,commands,argparse,random
 from collections import defaultdict
 import pysam, pybedtools
 from pysam import Samfile
@@ -58,9 +58,10 @@ def STAR_perform_mapping(project, gnme, seqs, threads,mismatches,gz, multimapped
   # build up options
   opts = ""
   opts += (" --genomeDir " + str(project) + "/" + str(gnme) + "/" + "STARindex --readFilesIn ")
-  for line in open(seqs) :
-    line = line.rstrip()
-    opts += (str(line) + " ")
+  opts += (seqs + ' ')
+#  for line in open(seqs) :
+#    line = line.rstrip()
+#    opts += (str(line) + " ")
   if gz:
     opts += (" --readFilesCommand gunzip -c")
   opts += (" --runThreadN " + str(threads))
@@ -130,10 +131,11 @@ class PersonalizeGenome :
     return f
 
   def read_in_edit(self):
+    print " read in edit file"
     edit_in = open(self._editFile)
     sys.stdout.write('# reading rna-edit file: '+self._editFile+'\n')
-    num_lines = sum(1 for line in open(self._editFile))
-    print num_lines
+#    num_lines = sum(1 for line in open(self._editFile))
+#    print num_lines
 #    pbar = ProgressBar(widgets=self._widgets,max_value=num_lines)
     e = defaultdict(list)
     firstline = True
@@ -151,8 +153,10 @@ class PersonalizeGenome :
     return e
 
   def read_in_vcf(self):
+    print "# storing vcf files"
     sys.stdout.write('# storing vcf files \n')
-    CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
+    CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X']
+#    CHROMS = ['21']
     VCF_HEADER = ['CHROM','POS','ID','REF','ALT','QUAL','FILTER','INFO','FORMAT','SAMPLE']
     v1,v2 = defaultdict(lambda: defaultdict(list)),defaultdict(lambda: defaultdict(list))
     for c in CHROMS:
@@ -194,6 +198,7 @@ class PersonalizeGenome :
     return v1,v2
 
   def personalize_genome(self):
+    print "personalizing genome"
     if self._rnaedit:
       hap1 = self.read_reference()
       vcf1,vcf2 = self.read_in_vcf()
@@ -291,7 +296,7 @@ class PersonalizeGenome :
     return
 
 class DiscoverSpliceJunctions :
-  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall):
+  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus):
     self._outDir = outDir
     self._vcf = os.path.join(vcf,chromosome+'.vcf') 
     self._gtf = gtf
@@ -310,11 +315,12 @@ class DiscoverSpliceJunctions :
     self._report = os.path.join(outDir, "report."+chromosome+".txt")
     self._gzipped = gzipped
     self._printall = printall
+    self._consensus = consensus
     self._widgets = [Percentage(),' Processed: ', Counter(), ' lines (', Timer(), ')']
     
   def read_in_rna_editing(self):
     logging.info('reading in rna editing events')
-    e = defaultdict(list)
+    e = defaultdict(lambda:defaultdict(list))
     fin = open(self._editFile)
     header = []
     firstline = True
@@ -327,7 +333,7 @@ class DiscoverSpliceJunctions :
         result = {}
         for i,col in enumerate(header):
           result[col] = fields[i]
-        e[result['chromosome'][3:]].append(int(result['position'])-1)
+        e[result['chromosome'][3:]][(int(result['position'])-1)/100].append(int(result['position'])-1)
     return e
 
   def read_in_vcf(self):
@@ -338,8 +344,8 @@ class DiscoverSpliceJunctions :
       vcf_in = open(self._vcf)
 #      num_lines = sum(1 for line in open(self._vcf)) 
 #    pbar = ProgressBar(widgets=self._widgets,max_value=num_lines) 
-    v = defaultdict(list)
-    vids = defaultdict(str)
+    v = defaultdict(lambda:defaultdict(list))
+    vids = defaultdict(lambda:defaultdict(str))
 
     if self._rnaedit:
       editPos = self.read_in_rna_editing()
@@ -368,14 +374,14 @@ class DiscoverSpliceJunctions :
                 alleles = [result['REF']] + alt ## [ref, alt1, alt2,...]
                 if ( re.match(r'[ACGT]',alleles[0]) and re.match(r'[ACGT]',alleles[g1]) and re.match(r'[ACGT]',alleles[g2])): ## make sure ref and alt alleles are A,C,T,or G
                   if (g1!=g2): # heterozygous snp
-                    v[int(result['POS'])-1] = [alleles[g1],alleles[g2]] ## subtract one from position (1 based) to match bam file (0 based)
-                    vids[int(result['POS'])-1] = result['ID']
+                    v[(int(result['POS'])-1)/100][int(result['POS'])-1] = [alleles[g1],alleles[g2],alleles[0]] ## subtract one from position (1 based) to match bam file (0 based)
+                    vids[(int(result['POS'])-1)/100][int(result['POS'])-1] = result['ID']
                   else:
-                    vids[int(result['POS'])-1] = result['ID']
+                    vids[(int(result['POS'])-1)/100][int(result['POS'])-1] = result['ID']
 
 
     else:
-      editPos = defaultdict(list)
+      editPos = defaultdict(lambda:defaultdit(list))
       for line in vcf_in:
         if line.startswith('#'): # skip over header lines 
           continue
@@ -398,10 +404,10 @@ class DiscoverSpliceJunctions :
               alleles = [result['REF']] + alt ## [ref, alt1, alt2,...]                                                                                                                                    
               if ( re.match(r'[ACGT]',alleles[0]) and re.match(r'[ACGT]',alleles[g1]) and re.match(r'[ACGT]',alleles[g2])): ## make sure ref and alt alleles are A,C,T,or G                               
                 if (g1!=g2): # heterozygous snp                                                                                                                                            
-                  v[int(result['POS'])-1] = [alleles[g1],alleles[g2]] ## subtract one from position (1 based) to match bam file (0 based)                                                                 
-                  vids[int(result['POS'])-1] = result['ID']
+                  v[(int(result['POS'])-1)/100][int(result['POS'])-1] = [alleles[g1],alleles[g2],alleles[0]] ## subtract one from position (1 based) to match bam file (0 based)                                                                 
+                  vids[(int(result['POS'])-1)/100][int(result['POS'])-1] = result['ID']
                 else:
-                  vids[int(result['POS'])-1] = result['ID']
+                  vids[(int(result['POS'])-1)/100][int(result['POS'])-1] = result['ID']
 
     vcf_in.close()
     return v,vids,editPos
@@ -580,50 +586,33 @@ class DiscoverSpliceJunctions :
 
   def get_splicesite_snp(self,start,end,v):
     # returns splice site snp in junction start-end
-    variant_positions = [p for p in (range(start-1,start+1)+range(end-2,end)) if p in v]
+    variant_positions = [p for p in (range(start-1,start+1)+range(end-2,end)) if p in v[p/100]]
     if len(variant_positions)>0:
       return [v[i] for i in variant_positions]
     else:
       return []
 
   def haplotype_specific_read(self,r,v,h,e):
-    # return 0 = hap spec, 1 = not hap spec, 2 = conflicting, 3 = multimapped, 4 = rnaedit,  5 = doesn't cover het snp, 6 = read contains indel or softclipping
+    # return 0 = hap spec, 1 = not hap spec, 2 = conflicting, 3 = multimapped, 4 = rnaedit,  5 = doesn't cover het snp
     if not self.is_unique(r):
-#      print '3:', r
-      return 3
-    readpos = 0
-    genopos = r.pos
-    snps = []
-    edit = []
-    for (cigarType,cigarLength) in r.cigar:
-      if cigarType==0:
-        snps += [p for p in range(genopos,genopos+int(cigarLength)) if p in v]
-        edit += [p for p in range(genopos,genopos+int(cigarLength)) if p in e]
-        genopos += int(cigarLength)
-        readpos += int(cigarLength)
-      elif cigarType==3:
-        genopos += cigarLength
-      else:
-#        print '1:', r
-        return 6
-    if len(edit)>0:
-#      print '4:', r
-      return 4
-    elif len(snps)==0:
-#      print '5:', r
-      return 5
+      return 3,[],[]
+    reference_positions = r.get_reference_positions()
+    snps = [p for p in reference_positions if p in v[p/100]]
+    edit = [p for p in reference_positions if p in e[p/100]]
+    if len(edit)>0: # read covers rna-editing position
+      return 4,edit,[]
+    elif len(snps)==0: # read doesn't cover het snp
+      return 5,[],[]
     else:
-      check = [self.check_cigar(r, v[p][h], p) for p in snps]
-#      print snps, check
+      check = [0 if r.seq[reference_positions.index(p)]==v[p/100][p][h] else 3 for p in snps]
+#      check = [self.check_cigar(r, v[p/100][p][h], p) for p in snps]
+      allele = ['R' if v[p/100][p][h]==v[p/100][p][2] else 'A' for p in snps]
       if check.count(0)>check.count(3):
-#        print '0:', r
-        return 0
+        return 0,snps,allele
       elif check.count(0)==check.count(3):
-#        print '2:', r
-        return 2
+        return 2,snps,allele
       else:
-#        print '1:', r
-        return 1
+        return 1,snps,allele
 
       
 
@@ -632,85 +621,223 @@ class DiscoverSpliceJunctions :
     bam1 = pysam.Samfile(self._hap1Bam)
     bam2 = pysam.Samfile(self._hap2Bam)
     snpreads1,snpreads2 = defaultdict(list),defaultdict(list)
+    snpreads = defaultdict(lambda:defaultdict(list))
     reads1,reads2 = defaultdict(list),defaultdict(list)
+
     print "## reading in VCF file"
     hetsnps,snpids,editpositions = self.read_in_vcf()
     spec1,spec2  = list(),list()
+    snps1,snps2 = defaultdict(list),defaultdict(list)
+    refalt1,refalt2 = defaultdict(list),defaultdict(list)
+    hap1only,hap2only = list(),list()
+    consensus_reads = defaultdict(lambda:defaultdict(list))
 
     print "## reading in hap1 bam file: ", self._hap1Bam
     for r in bam1.fetch('chr'+str(self._chromosome)):
-      spec = self.haplotype_specific_read(r,hetsnps,0, editpositions[self._chromosome])
+      spec,snppos,refalt = self.haplotype_specific_read(r,hetsnps,0, editpositions[self._chromosome])
       snpreads1[spec].append(r.qname)
       reads1[r.qname].append(r)
+      snps1[r.qname] += snppos
+      refalt1[r.qname] += refalt
+      consensus_reads[r.qname][1].append(spec)
 
     print "## reading in hap2 bam file: ", self._hap2Bam
     for r in bam2.fetch('chr'+str(self._chromosome)):
-      spec = self.haplotype_specific_read(r,hetsnps,1, editpositions[self._chromosome])
+      spec,snppos,refalt = self.haplotype_specific_read(r,hetsnps,1, editpositions[self._chromosome])
       snpreads2[spec].append(r.qname)
       reads2[r.qname].append(r)
+      snps2[r.qname]+=snppos
+      refalt2[r.qname] += refalt
+      consensus_reads[r.qname][2].append(spec)
 
     conflicting = list(set([ r for r in snpreads1[0] if r in snpreads2[0]] + snpreads1[2] + snpreads2[2]))
+    multimapped = list(set(snpreads1[3] + snpreads2[3]))
+    rnaeditreads = list(set(snpreads1[4] + snpreads2[4]))
     snpreads1[0] = list(set([ r for r in snpreads1[0] if ((r not in conflicting) and (r not in snpreads2[3]))]))
     snpreads2[0] = list(set([ r for r in snpreads2[0] if ((r not in conflicting) and (r not in snpreads1[3]))]))
+    
 
     print "## assigning specific reads"
     for qname in snpreads1[0]:
       if qname in reads2:
-#        print qname,[i.pos for i in reads1[qname]],[i.pos for i in reads2[qname]]
         if all([True if reads1[qname][i].pos==reads2[qname][i].pos else False for i in range(len(reads1[qname]))]): # reads have same starting position in hap1 and hap2
-#          print "True"
           if self.num_mismatches(reads1[qname][0]) < self.num_mismatches(reads2[qname][0]):
-#            print "haplotype specific"
             spec1.append(qname)
-#          else:
-#            print "not haplotype specific"
-#        else:
-#          print "False"
-    
+      else:
+        hap1only.append(qname)
+
     for qname in snpreads2[0]:
       if qname in reads1:
         if all([True if reads1[qname][i].pos==reads2[qname][i].pos else False for i in range(len(reads2[qname]))]): # reads have same starting position in hap1 and hap2 
           if self.num_mismatches(reads2[qname][0]) < self.num_mismatches(reads1[qname][0]):
             spec2.append(qname)
-            
+      else:
+        hap2only.append(qname)
+
     conflictCount = len(set(conflicting))
     hap1Count = len(set(spec1))
     hap2Count = len(set(spec2))
+
     print "## printing report file"
     report_out = open(self._outDir + '/report.'+self._chromosome+'.txt','w')
-    report_out.write('# ' + self._chromosome + '\t' + 'hap1' + '\t' + str(hap1Count) + '\n')
-    report_out.write('# ' + self._chromosome + '\t' + 'hap2' +'\t' + str(hap2Count) + '\n')
-    report_out.write('# ' + self._chromosome + '\t' + 'conflicting' +'\t' + str(conflictCount) + '\n')
-
+    report_out.write('########## haplotype assignment report for chromosome ' + self._chromosome + '##########\n')
+    report_out.write('# hap1' + '\t' + str(hap1Count) + '\n')
+    report_out.write('# hap2' +'\t' + str(hap2Count) + '\n')
+    report_out.write('# conflicting' +'\t' + str(conflictCount) + '\n')
+    
     if self._rnaedit:
       print "printing rna editing file"
       edit1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.rnaedit.bam','wb',template=bam1)
       edit2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.rnaedit.bam','wb',template=bam2)
+      report_out.write('# rna-edit,hap1\t' + str(len(set(snpreads1[4]))) + '\n')
+      report_out.write('# rna-edit,hap2\t' + str(len(set(snpreads2[4]))) + '\n')
       for qname in snpreads1[4]:
         for r in reads1[qname]:
+          r.tags += [('HT',1),('EP',';'.join([str(s) for s in snps1[qname]]))]
           edit1.write(r)
       for qname in snpreads2[4]:
         for r in reads2[qname]:
+          r.tags += [('HT',2),('EP',';'.join([str(s) for s in snps2[qname]]))]
           edit2.write(r)
-
+    report_out.write('###################################################################################\n')
     if self._writeBam:
       print "## printing bam file"
       out1 = pysam.Samfile(self._outDir + "/hap1."+self._chromosome+'.bam','wb',template=bam1)
       out2 = pysam.Samfile(self._outDir + "/hap2."+self._chromosome+'.bam','wb',template=bam2)
       for qname in spec1:
         for r in reads1[qname]:
+          r.tags += [('HT',1),('SP',';'.join([str(p) for p in snps1[qname]])),('GT',';'.join([x for x in refalt1[qname]]))]
           out1.write(r)
+
       for qname in spec2:
         for r in reads2[qname]:
+          r.tags += [('HT',2),('SP',';'.join([str(p) for p in snps2[qname]])),('GT',';'.join([x for x in refalt2[qname]]))]
           out2.write(r)
       
       if self._printall: # print all reads that dont cover het snps
         for qname in snpreads1[5]:
           for r in reads1[qname]:
+            r.tags += [('HT',1)]
             out1.write(r)
+
         for qname in snpreads2[5]:
           for r in reads2[qname]:
+            r.tags += [('HT',2)]
             out2.write(r)
+
+    if self._consensus: # print one consensus bam file
+      print "## printing consensus bam file"
+      multi = len(multimapped)
+      rna_edit = len(rnaeditreads)
+      hap1_only = 0
+      hap2_only = 0
+      dif_loc = 0
+      hap1_spec = 0
+      hap2_spec = 0
+      conflict = 0
+      same_hap1 = 0
+      same_hap2 = 0
+      consensus = pysam.Samfile(self._outDir + "/consensus."+self._chromosome+'.bam','wb',template=bam1)
+      #print hap1 specific reads
+      print "print hap1 specific reads to consensus file"
+      if self._writeBam:
+        for qname in spec1:
+          hap1_spec += 1
+          for r in reads1[qname]:
+            consensus.write(r)
+      else:
+        for qname in spec1:
+          hap1_spec += 1
+          for r in reads1[qname]:
+            r.tags += [('HT',1),('SP',';'.join([str(p) for p in snps1[qname]])),('GT',';'.join([x for x in refalt1[qname]]))]
+            consensus.write(r)
+      for qname in hap1only:
+        hap1_only += 1
+        for r in reads1[qname]:
+          if len(snps1[qname])==0:
+            r.tags += [('HT',1)]
+          else:
+            r.tags += [('HT',1),('SP',';'.join([str(p) for p in snps1[qname]])),('GT',';'.join([x for x in refalt1[qname]]))]
+          consensus.write(r)
+      #print hap2 specific reads
+      print "print hap2 specific reads to consensus file"
+      if self._writeBam:
+        for qname in spec2:
+          hap2_spec+=1
+          for r in reads2[qname]:
+           consensus.write(r)
+      else:
+        for qname in spec2:
+          hap2_spec += 1
+          for r in reads2[qname]:
+            r.tags += [('HT',2),('SP',';'.join([str(p) for p in snps2[qname]])),('GT',';'.join([x for x in refalt2[qname]]))]
+            consensus.write(r)
+      for qname in hap2only:
+        hap2_only += 1
+        if len(snps2[qname])==0:
+          r.tags += [('HT',2)]
+        else:
+          r.tags += [('HT',2),('SP',';'.join([str(p) for p in snps2[qname]])),('GT',';'.join([x for x in refalt2[qname]]))]
+        consensus.write(r)
+      #print conflicting reads (choose which haplotype alignment to print randomly)
+      print "print conflicting reads to consensus file"
+      for qname in conflicting:
+        conflict += 1
+        x = random.random()
+        if x<0.5:
+          for r in reads1[qname]:
+            r.tags += [('HT',1),('SP',';'.join([str(p) for p in snps1[qname]])),('GT',';'.join([x for x in refalt1[qname]]))]
+            consensus.write(r)
+        else:
+          for r in reads2[qname]:
+            r.tags += [('HT',2),('SP',';'.join([str(p) for p in snps2[qname]])),('GT',';'.join([x for x in refalt2[qname]]))]
+            consensus.write(r)
+
+      #print reads that dont cover heterozygous snp(s)
+      print "reads that dont cover het snps to consensus file"
+      for qname in consensus_reads:
+        if qname not in multimapped and qname not in rnaeditreads:
+          if 1 in consensus_reads[qname]:
+            if 2 in consensus_reads[qname]:
+              if consensus_reads[qname][1]==[5,5] and consensus_reads[qname][2]==[5,5]: #both reads are uniquely mapped and dont cover het snp
+                if all([True if reads1[qname][i].pos==reads2[qname][i].pos else False for i in range(len(reads2[qname]))]): #reads have same start
+                  x = random.random()
+                  if x < 0.5:
+                    same_hap1 += 1
+                    for r in reads1[qname]:
+                      r.tags += [('HT',1)]
+                      consensus.write(r)
+                  else:
+                    same_hap2 += 1
+                    for r in reads2[qname]:
+                      r.tags += [('HT',2)]
+                      consensus.write(r)
+                else:
+                  dif_loc += 1
+            else: #read maps to hap1 only
+              hap1_only += 1
+              for r in reads1[qname]:
+                r.tags += [('HT',1)]
+                consensus.write(r)
+          else:
+            hap2_only += 1
+            for r in reads2[qname]:
+              r.tags += [('HT',1)]
+              consensus.write(r)
+      report_out.write('####### consensus BAM file report #######\n')
+      report_out.write('# total read pairs in consensus.'+self._chromosome+'.bam: '+str(hap1_only+hap2_only+hap1_spec+hap2_spec+conflict+same_hap1+same_hap2) + '\n')
+      report_out.write('# - only mapped to hap1: '+str(hap1_only)+'\n')
+      report_out.write('# - only mapped to hap2: '+str(hap2_only)+'\n')
+      report_out.write('# - hap1 specific: ' + str(hap1_spec) + '\n')
+      report_out.write('# - hap2 specific: ' + str(hap2_spec) + '\n')
+      report_out.write('# - conflicting: ' + str(conflict) + '\n')
+      report_out.write('# - same alignment, choose hap1: ' + str(same_hap1) + '\n')
+      report_out.write('# - same alignment, choose hap2: ' + str(same_hap2) + '\n')
+      report_out.write('# total read pairs not mapped to consensus.'+self._chromosome+'.bam: ' + str(multi+dif_loc+rna_edit) + '\n')
+      report_out.write('# - multimapped: ' + str(multi) + '\n')
+      report_out.write('# - mapped to different locations in each haplotype: ' + str(dif_loc) + '\n')
+      report_out.write('# - cover rna-editing site: ' + str(rna_edit) + '\n')
+      report_out.write('##########################################\n')
 
     if self._conflicting:
       print "## printing conflicting file"
@@ -872,35 +999,47 @@ def main(args) :
     editFile = ""
 
   printall = args.printall
-  writeBam = args.b
-  multiprocessing = args.p
-  gzipped = args.g
+  writeBam = args.writeBam
+#  multiprocessing = args.p
+  gzipped = args.gz
   writeConflicting = args.conflict
   rnaedit = args.rnaedit
+  consensus = args.consensus
+  outDir = args.o
+
+  if not os.path.exists(outDir):
+    os.makedirs(outDir)
+
+  ref = args.r
+  vcf = args.v
+  gtf = args.g
 
   if len(command) == 1 or (len(command)==2 and isHelpString(command[1].strip().lower())):
     sys.stderr.write(helpStr + "\n\n")
   else :
     setting = command[1].strip().lower()
-    outDir = open(".rPGAProject.yaml").readline().rstrip()
+#    outDir = open(".rPGAProject.yaml").readline().rstrip()
     hap1Ref = os.path.join(outDir, "hap1.fa")
     hap2Ref = os.path.join(outDir, "hap2.fa")
-    vcf = ""
-    gtf = ""
-    ref = ""
-    seqs = ""
 
     if setting == "personalize" :
+      print "personalizing genome"
       if command[1].strip().lower() == "help" :
         sys.stderr.write(helpStr + "\n\n")
         sys.exit()
       elif len(command) > 2 :
-        sys.stderr.write("Input arguments are not correct\n")
+        sys.stderr.write("ERROR: Input arguments are not correct\n")
         sys.stderr.write(helpStr + '\n\n')
         sys.exit()
       else :
-        ref = open(".rPGAGenome.yaml").readline().rstrip()
-        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+        if not args.r:
+          sys.stderr.write("ERROR: rPGA run personalize command requires -r parameter \nExample: rPGA run mapping -v vcf_directory -r reference.fa  -o rPGA \n")
+          sys.exit()
+        if not args.v:
+          sys.stderr.write("ERROR: rPGA run personalize command requires -v parameter \nExample: rPGA run mapping -v vcf_directory -r reference.fa  -o rPGA \n")
+          sys.exit()
+#        ref = open(".rPGAGenome.yaml").readline().rstrip()
+#        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref,rnaedit,editFile,gzipped)
         p.personalize_genome()
 
@@ -915,13 +1054,21 @@ def main(args) :
         sys.exit()
       elif len(command) == 3:
         if command[2].strip().lower() == "alleles":
-          seqs = ".rPGASeqs.yaml"
-          ref = open(".rPGAGenome.yaml").readline().rstrip()
-          vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+#          seqs = ".rPGASeqs.yaml"
+          seqs = ' '.join((args.s).split(','))
+          if len((args.s).split(','))==0 or len((args.s).split(','))>2:
+            sys.stderr.write("ERROR: Sequence parameter -s input is  not correct\n Example: rPGA run mappng alleles -s reads_1.fq,reads_2.fq -o rPGA\n")
+            sys.exit()
+#          ref = open(".rPGAGenome.yaml").readline().rstrip()
+#          vcf = open(".rPGAGenotype.yaml").readline().rstrip()
           if not os.path.exists(os.path.join(outDir, "HAP1/STARindex")):
             os.makedirs(os.path.join(outDir, "HAP1/STARindex"))
           if not os.path.exists(os.path.join(outDir, "HAP2/STARindex")):
             os.makedirs(os.path.join(outDir, "HAP2/STARindex"))
+          if not os.path.exists(os.path.join(outDir, "HAP1/STARalign")):
+            os.makedirs(os.path.join(outDir, "HAP1/STARalign"))
+          if not os.path.exists(os.path.join(outDir, "HAP2/STARalign")):
+            os.makedirs(os.path.join(outDir, "HAP2/STARalign"))
           STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
           STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
           STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
@@ -937,7 +1084,14 @@ def main(args) :
           sys.stderr.write(helpStr + '\n\n')
           sys.exit()
       else :
-        seqs = ".rPGASeqs.yaml"
+#        seqs = ".rPGASeqs.yaml"
+        if not args.r:
+          sys.stderr.write("ERROR: rPGA run mapping command requires -r parameter \nExample: rPGA run mapping -r reference.fa -s reads_1.fq,reads_.fq -o rPGA \n")
+          sys.exit()
+        seqs = ' '.join((args.s).split(','))
+        if len((args.s).split(','))==0 or len((args.s).split(','))>2:
+          sys.stderr.write("ERROR: Sequence parameter -s input is  not correct\n Example: rPGA run mapping - r reference.fa -s reads_1.fq,reads_2.fq -o rPGA\n")
+          sys.exit()
         print "checking STAR index directories"
         if not os.path.exists(os.path.join(outDir, "HAP1/STARindex")):
           os.makedirs(os.path.join(outDir, "HAP1/STARindex"))
@@ -945,6 +1099,12 @@ def main(args) :
           os.makedirs(os.path.join(outDir, "HAP2/STARindex"))
         if not os.path.exists(os.path.join(outDir, "REF/STARindex")):
           os.makedirs(os.path.join(outDir, "REF/STARindex"))
+        if not os.path.exists(os.path.join(outDir, "HAP1/STARalign")):
+          os.makedirs(os.path.join(outDir, "HAP1/STARalign"))
+        if not os.path.exists(os.path.join(outDir, "HAP2/STARalign")):
+          os.makedirs(os.path.join(outDir, "HAP2/STARalign"))
+        if not os.path.exists(os.path.join(outDir, "REF/STARalign")):
+          os.makedirs(os.path.join(outDir, "REF/STARalign"))
         print "creating STAR genome indicies"
         STAR_create_genome(outDir, ref, "REF",threads)
         STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
@@ -968,31 +1128,50 @@ def main(args) :
         sys.stderr.write(helpStr + "\n\n")
         sys.exit()
       elif len(command) > 2 :
-        sys.stderr.write("Input arguments are not correct\n")
+        sys.stderr.write("ERROR: Input arguments are not correct\n")
         sys.exit()
       else :
         discoverJunctions = True
-        ref = open(".rPGAGenome.yaml").readline().rstrip()
-        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-        seqs = ".rPGASeqs.yaml"
-        gtf = open(".rPGAJunctions.yaml").readline().rstrip()
-        hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
-        hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
-        refBam = outDir+'/REF/STARalign/Aligned.out.sorted.bam'
+#        ref = open(".rPGAGenome.yaml").readline().rstrip()
+#        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+#        seqs = ".rPGASeqs.yaml"
+#        gtf = open(".rPGAJunctions.yaml").readline().rstrip()
+        if not args.v:
+          sys.stderr.write("ERROR: rPGA run discover command requires -v parameter \nExample: rPGA run discover -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+          sys.exit()
+        if not args.g:
+          sys.stderr.write("ERROR: rPGA run discover command requires -g parameter \nExample: rPGA run discover -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+          sys.exit()
+        if args.b1:
+          hap1Bam = args.b1
+        else:
+          hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
+        if args.b2:
+          hap2Bam = args.b2
+        else:
+          hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
+        if args.br:
+          refBam = args.br
+        else:
+          refBam = outDir+'/REF/STARalign/Aligned.out.sorted.bam'
+        if not args.c:
+          sys.stderr.write("ERROR: rPGA run discover command requires -c parameter \nExample: rPGA run discover -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+          sys.exit()
         chromosome = args.c
         if chromosome.startswith('chr'):
           chromosome = chromosome[3:]
-        if multiprocessing:
-          import multiprocessing
-          CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
-          processes = [mp.Process(target=worker, args=(c,)) for c in CHROMS]
-          for p in processes:
-            p.start()
-          for p in processes:
-            p.join()
+
+#        if multiprocessing:
+#          import multiprocessing
+#          CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
+#          processes = [mp.Process(target=worker, args=(c,)) for c in CHROMS]
+#          for p in processes:
+#            p.start()
+#          for p in processes:
+#            p.join()
 
         else:
-          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall)
+          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus)
           p.haplotype_specific_junctions()
 
     elif setting == "alleles":
@@ -1000,23 +1179,38 @@ def main(args) :
         sys.stderr.write(helpStr + "\n\n")
         sys.exit()
       elif len(command) > 2:
-        sys.stderr.write("Input arguments are not correct\n")
+        sys.stderr.write("ERROR: Input arguments are not correct\n")
         sys.exit()
       else:
         discoverJunctions = False        
         writeBam = True
-        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+#        if args.v:
+#          vcf = args.v
+#        else:
+#          vcf = open(".rPGAGenotype.yaml").readline().rstrip()
+        if not args.v:
+          sys.stderr.write("ERROR: rPGA run alleles command requires -v parameter \nExample: rPGA run alleles -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+          sys.exit()
         gtf = ""
-        hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
-        hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
+        if args.b1:
+          hap1Bam = args.b1
+        else:
+          hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
+        if args.b2:
+          hap2Bam = args.b2
+        else:
+          hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
         refBam = ""
+        if not args.c:
+          sys.stderr.write("ERROR: rPGA run alleles command requires -c parameter \nExample: rPGA run alleles -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+          sys.exit()
         chromosome = args.c
         if chromosome.startswith('chr'):
           chromosome = chromosome[3:]
-        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall)
+        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus)
         p.haplotype_specific_junctions()
 
     else :
-      sys.stderr.write("rPGA run -- unknown command: " + command + "\n")
+      sys.stderr.write("ERROR: rPGA run -- unknown command: " + command + "\n")
       sys.stderr.write(helpStr + "\n\n")
     
