@@ -584,11 +584,11 @@ class DiscoverSpliceJunctions :
         return True
     return False
 
-  def get_splicesite_snp(self,start,end,v):
+  def get_splicesite_snp(self,s,e,v):
     # returns splice site snp in junction start-end
-    variant_positions = [p for p in (range(start-1,start+1)+range(end-2,end)) if p in v[p/100]]
+    variant_positions = [p for p in (range(s-1,s+1)+range(e-2,e)) if p in v[p/100]]
     if len(variant_positions)>0:
-      return [v[i] for i in variant_positions]
+      return [v[i/100][i] for i in variant_positions]
     else:
       return []
 
