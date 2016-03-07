@@ -175,7 +175,7 @@ rPGA personalize options:
      -e              file containing RNA editing sites, can be downloaded from RADAR
                      (http://rnaedit.com/download)
 
-* Required parameters
+\* Required parameters
 
 ** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
 rPGA will change each RNA editing site to an "N" in the personal genomes. The number
@@ -212,9 +212,9 @@ rPGA mapping options:
      -T	        number of threads STAR uses, default is 8
      -M         max number of multiple alignments, default is 20
      -N         max number of read mismatches, default is 3
-     —-gz       flag denoting sequence reads are gzipped
+     --gz       flag denoting sequence reads are gzipped
 
-* Required parameters
+\* Required parameters
 
 Outputs:
   1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
@@ -244,14 +244,14 @@ rPGA discover options:
      -g *            Annotation file (GTF)
      -v *            Genotype directory (VCF)
      -o *            Output directory
-     —-writeBam      flag to write allele specific bam files
+     --writeBam      flag to write allele specific bam files
      --conflict      flag to write bam file containing conflicting reads
      --rnaedit **    flag to consider rna editing sites 
      -e **           file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
-     —-gz            flag denoting VCF genotype files are gzipped
+     --gz            flag denoting VCF genotype files are gzipped
      --printall      flag to include non-haplotype specific reads in bam output file
-     —-consensus     flag to print consensus BAM file (described below)
+     --consensus     flag to print consensus BAM file (described below)
      -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
      -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
      -br ***         Reference alignment file to reference genome (BAM)
@@ -355,7 +355,7 @@ rPGA personalize options:
      -e              file containing RNA editing sites, can be downloaded from RADAR
                      (http://rnaedit.com/download)
 
-* Required parameters
+\* Required parameters
 
 ** Note if --rnaedit flag is used, RNA editing file must be provided using -e.
 rPGA will change each RNA editing site to an "N" in the personal genomes. The number
@@ -394,7 +394,7 @@ rPGA mapping options:
      -N         max number of read mismatches, default is 3
      --gz       flag denoting sequence reads are gzipped
 
-* Required parameters
+\* Required parameters
 
 Outputs:
 1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
@@ -434,7 +434,7 @@ rPGA alleles options:
      -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
      -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
     
-* Required parameter
+\* Required parameter
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
