@@ -136,8 +136,8 @@ hidden splice junctions.
 
 Inputs:
 
-1. Reference genome (FASTA)
-2. Directory containing VCF files, one per chromosome
+  1. Reference genome (FASTA)
+  2. Directory containing VCF files, one per chromosome
 
 Download the reference sequences for the species from
 http://hgdownload.cse.ucsc.edu/downloads.html.
@@ -220,6 +220,7 @@ rPGA mapping options:
 * Required parameters
 
 Outputs:
+
 1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
 2. output_directory/HAP1/STARalign/Aligned.out.sorted.bam.bai
 3. output_directory/HAP2/STARalign/Aligned.out.sorted.bam
