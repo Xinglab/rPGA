@@ -256,7 +256,7 @@ rPGA discover options:
      -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
      -br ***         Reference alignment file to reference genome (BAM)
 
-* Required parameters
+\* Required parameters
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
@@ -293,12 +293,12 @@ The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
 SNPid is a comma deliminated list of the splice site SNP ids, which match the 
 SNP ids in the given VCF file..
 
-If —-rnaedit is used, rPGA will also output bam files containing reads 
+If --rnaedit is used, rPGA will also output bam files containing reads 
 that overlap RNA editing sites:
   1. hap1.chrom.rnaedit.bam
   2. hap2.chrom.rnaedit.bam
 
-If —-writeBam flag is used, rPGA will output allele specific bam files:
+If --writeBam flag is used, rPGA will output allele specific bam files:
   1. hap1.chrom.bam
   2. hap2.chrom.bam
 
