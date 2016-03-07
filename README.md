@@ -135,6 +135,7 @@ hidden splice junctions.
 ### Personalize Genome ###
 
 Inputs:
+
 1. Reference genome (FASTA)
 2. Directory containing VCF files, one per chromosome
 
@@ -170,7 +171,7 @@ rPGA personalize options:
      -o *            output directory
      -r *            reference genome
      -v *            VCF directory
-     —-gz            flag denoting VCF files are gzipped 
+     --gz            flag denoting VCF files are gzipped 
      --rnaedit       flag to N-mask rna editing sites
      -e              file containing RNA editing sites, can be downloaded from RADAR
                      (http://rnaedit.com/download)
@@ -183,6 +184,7 @@ and locations of RNA editing sites that overlap  SNPs will be reported in
 report.personalize.txt.
 
 Outputs:
+
 1. output_directory/hap1.fa (hap1 personal genome)
 2. output_directory/hap2.fa (hap2 personal genome)
 
@@ -192,6 +194,7 @@ The next step is to map the sequencing data to the personalized genome using
 STAR alignment tool. 
 
 Inputs:
+
 1. Reference genome (FASTA)
 2. Read sequences (FASTQ), single or paired end
 
