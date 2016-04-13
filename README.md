@@ -6,7 +6,7 @@
                                  /_/  /_/    \____/_/  |_|
 
                                ****************************
-                               *         V 1.3.4          *
+                               *         V 1.3.5          *
                                ****************************
 
 
@@ -14,7 +14,9 @@ rPGA is a pipeline to discover  hidden  splicing  variations  by  mapping
 personal transcriptomes to personal genomes. As of version 1.0.1, rPGA will also
 generate allele specific alignments using the "run alleles" option (see Usage).
 As of version 1.1.1, rPGA will N-mask known RNA-editing sites when making the 
-personal genomes (see --rnaedit flag in Usage).  
+personal genomes (see --rnaedit flag in Usage). As of version 1.3.5, rPGA can take 
+unphased variant files as input and produce an N-masked allele specific analysis
+(see --nmask flag in Usage).  
 
 Overview
 ------------
@@ -81,8 +83,8 @@ location for all users, you may need to prefix these with sudo.
 To begin the installation, unpack the distribution and CD into the newly created
 directory.
 
-    tar -xf rPGA-1.2.4.tar.gz
-    cd rPGA-1.2.4
+    tar -xf rPGA-1.3.5.tar.gz
+    cd rPGA-1.3.5
 
 Or, clone from the github repository.
 
@@ -202,7 +204,7 @@ depending on the options of the mapper).
 
 To align reads to personal genomes:
 
-    $ rPGA run mapping -g reference.fa -s reads_1.fastq,[reads_2.fastq]
+    $ rPGA run mapping -r reference.fa -s reads_1.fastq,[reads_2.fastq] -o outdir
 
 rPGA mapping options:
 
@@ -355,9 +357,10 @@ rPGA personalize options:
      -r *            reference genome
      -v *            VCF directory
      --gz            flag denoting VCF files are gzipped 
-     --rnaedit       flag to N-mask rna editing sites
-     -e              file containing RNA editing sites, can be downloaded from RADAR
+     --rnaedit **    flag to N-mask rna editing sites
+     -e **           file containing RNA editing sites, can be downloaded from RADAR
                      (http://rnaedit.com/download)
+     --nmask ***     flag to make one N-mask genome instead of two personal genomes
 
 \* Required parameters
 
@@ -366,9 +369,17 @@ rPGA will change each RNA editing site to an "N" in the personal genomes. The nu
 and locations of RNA editing sites that overlap  SNPs will be reported in 
 report.personalize.txt.
 
+*** Use --nmask flag to nmask SNP positions in the reference genome. This should be used
+if you have unphased genotype data.  This produces one N-masked personal genome instead 
+of two personal genomes. Note, --nmask option must be used for all three rPGA run steps 
+(personalize, mapping, and alleles)
+
 Outputs:
   1. output_directory/hap1.fa (hap1 personal genome)
   2. output_directory/hap2.fa (hap2 personal genome)
+
+Output (nmask flag):
+  1. output_directory/nmask.fa (N-masked personal genome)
 
 ### RNA-seq Alignment ###
 
@@ -386,25 +397,34 @@ depending on the options of the mapper).
 
 To align reads to personal genomes:
 
-    $ rPGA run mapping alleles -g reference.fa -s reads_1.fastq,[reads_2.fastq]
+    $ rPGA run mapping alleles -r reference.fa -s reads_1.fastq,[reads_2.fastq] -o outdir
 
 rPGA mapping options:
 
-     -r *       reference genome (Fasta)
-     -s *       read sequences, either single or paired end
-     -o *       output directory 
-     -T	        number of threads STAR uses, default is 8
-     -M         max number of multiple alignments, default is 20
-     -N         max number of read mismatches, default is 3
-     --gz       flag denoting sequence reads are gzipped
+     -r *         reference genome (Fasta)
+     -s *         read sequences, either single or paired end
+     -o *         output directory 
+     -T	          number of threads STAR uses, default is 8
+     -M           max number of multiple alignments, default is 20
+     -N           max number of read mismatches, default is 3
+     --gz         flag denoting sequence reads are gzipped
+     --nmask **   flag to do N-mask RNA-seq alignment
 
 \* Required parameters
+
+** Aligns RNA-seq reads to nmask.fa, producing just one alignment output. Note, 
+--nmask option must be used for all three rPGA run steps (personalize, mapping, 
+and alleles)
 
 Outputs:
 1. output_directory/HAP1/STARalign/Aligned.out.sorted.bam
 2. output_directory/HAP1/STARalign/Aligned.out.sorted.bam.bai
 3. output_directory/HAP2/STARalign/Aligned.out.sorted.bam
 4. output_directory/HAP2/STARalign/Aligned.out.sorted.bam.bai
+
+Outputs (nmask flag):
+1. output_directory/MASK/STARalign/Aligned.out.sorted.bam
+2. output_directory/MASK/STARalign/Aligned.out.sorted.bam.bai
 
 ### Allele Specific Assignment ###
 
@@ -419,17 +439,21 @@ Outputs:
   2. hap2.chrom.bam
   3. report.chrom.txt
 
+Outputs (if nmask flag is used):
+  1. nmask.chrom.bam
+  2. report.chrom.bam
+
 Usage:
 	
     $ rPGA run alleles -c CHROM -v genotype_directory -o output_directory
 
 rPGA alleles options:
 
-     -c *           Chromosome to be analyzed (C or -chrC to analyze chrom C)
-     -v *           Genotype directory containing VCF files
-     -o *           Output directory
-     --conflict     flag to write bam file containing conflicting reads
-     --rnaedit **   flag to consider rna editing sites 
+     -c *            Chromosome to be analyzed (C or -chrC to analyze chrom C)
+     -v *            Genotype directory containing VCF files
+     -o *            Output directory
+     --conflict      flag to write bam file containing conflicting reads
+     --rnaedit **    flag to consider rna editing sites 
      -e	**           file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
      --gz            flag denoting VCF genotype files are gzipped
@@ -437,7 +461,8 @@ rPGA alleles options:
      --consensus     flag to print consensus bam file
      -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
      -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
-    
+     --nmask ****    flag to do N-masking allele specific assignment
+
 \* Required parameter
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be 
@@ -447,6 +472,11 @@ RNA editing sites when assigning mapped	reads to haplotypes.
 *** Use these if you would like to supply your own personal genome mapping alignment files. 
 If rPGA run mapping (previous step) is used there is no need to provide rPGA the alignment 
 files, rPGA will use the alignments in HAP1/STARalign and HAP2/STARalign.
+
+**** If nmask flag is used, reads covering heterozygous SNPs are assigned to the reference 
+or alternate allele. Note, --nmask option must be used for all three rPGA run steps 
+(personalize, mapping, and alleles)
+
 
 Once you have generated allele specific bam files for all 22 autosomal chromosomes
 or all 22 autosomes and X, you can merge them into one allele specific bam file
@@ -528,10 +558,18 @@ personalized genomes, hap1.fa and hap2.fa.
 Note, rPGA adds up to 4 SAM tags:
 
 1. HT: denotes which haplotype read originates from (1 or 2)
-2. SP: comma deliminated list of heterozygous SNP positions the read covers
+2. SP: semicolon deliminated list of heterozygous SNP positions the read covers
 3. GT: denotes whether the read contains the reference or alternate allele(s) for the
 SNP(s) in SP
-4. EP: comma deliminated list of RNA editing positions the read covers (if used —-rnaedit)
+4. EP: semicolon deliminated list of RNA editing positions the read covers (if used —-rnaedit)
+
+
+If --nmask flag is used, the SAM flags are:
+1. SP: semicolon deliminated list of heterozygous SNP positions the read covers
+2. GT: denotes whether the read contains the reference or alternate allele(s) for the
+SNP(s) in SP
+3. RF: denotes the reference allele for each SNP in SP
+4. AT: denotes the alternate allele for each SNP in SP
 
 ### Consensus BAM file ###
 
