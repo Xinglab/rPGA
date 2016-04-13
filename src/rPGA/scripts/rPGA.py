@@ -57,6 +57,7 @@ def main() :
   parser.add_argument('-o',help="output directory")
   parser.add_argument('-s',help="fastq read file(s), comma deliminated if paired end")
   parser.add_argument('-r',help="reference fasta file")
+  parser.add_argument('--nmask',help="flag to N-mask reference genome and align to that",action="store_true")
   args = parser.parse_args()
   command = args.command
   

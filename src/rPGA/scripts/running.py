@@ -27,6 +27,7 @@ from collections import defaultdict
 import pysam, pybedtools
 from pysam import Samfile
 from pybedtools import BedTool
+from  more_itertools import unique_everseen
 
 ################################################################################
 ##            PRELIMINARY COMMAND LINE PROCESSING AND DISPATCH                ##
@@ -78,8 +79,8 @@ def STAR_perform_mapping(project, gnme, seqs, threads,mismatches,gz, multimapped
   env_cpy = os.environ.copy()
   commandSTAR = ("STAR" + " " + opts)
   print commandSTAR
-  oFile = open(str(project) + "/mapping_commands.sh","w")
-  oFile.write("##### Creating Genome for " + str(gnme) + "#####\n" +\
+  oFile = open(str(project) + "/mapping_commands.sh","a")
+  oFile.write("##### Mapping reads for " + str(gnme) + "#####\n" +\
               commandSTAR + "\n#\n")
   oFile.flush()
   oFile.close()
@@ -105,7 +106,7 @@ def worker(i):
 ################################################################################
 
 class PersonalizeGenome :
-  def __init__(self, outDir, vcf, ref, hap1Ref, hap2Ref,rnaedit,editFile,gzipped):
+  def __init__(self, outDir, vcf, ref, hap1Ref, hap2Ref,rnaedit,editFile,gzipped,nRef,nmask):
     self._outDir = outDir
     self._vcf = vcf
     self._ref = ref
@@ -114,8 +115,10 @@ class PersonalizeGenome :
     self._rnaedit = rnaedit
     self._editFile = editFile
     self._report = os.path.join(outDir,'report.personalize.txt')
-    self._widgets = [Percentage(),' Processed: ', Counter(), ' lines (', Timer(), ')']
     self._gzipped = gzipped
+    self._nRef = nRef
+    self._nmask = nmask
+
   def read_reference(self):
     f = defaultdict(list)
     ref_in = open(self._ref)
@@ -134,9 +137,6 @@ class PersonalizeGenome :
     print " read in edit file"
     edit_in = open(self._editFile)
     sys.stdout.write('# reading rna-edit file: '+self._editFile+'\n')
-#    num_lines = sum(1 for line in open(self._editFile))
-#    print num_lines
-#    pbar = ProgressBar(widgets=self._widgets,max_value=num_lines)
     e = defaultdict(list)
     firstline = True
     for line in edit_in:
@@ -153,10 +153,8 @@ class PersonalizeGenome :
     return e
 
   def read_in_vcf(self):
-    print "# storing vcf files"
     sys.stdout.write('# storing vcf files \n')
     CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X']
-#    CHROMS = ['21']
     VCF_HEADER = ['CHROM','POS','ID','REF','ALT','QUAL','FILTER','INFO','FORMAT','SAMPLE']
     v1,v2 = defaultdict(lambda: defaultdict(list)),defaultdict(lambda: defaultdict(list))
     for c in CHROMS:
@@ -167,8 +165,6 @@ class PersonalizeGenome :
         vcf_fn = self._vcf + '/' + c +'.vcf'
         vcf_in = open(vcf_fn)
       sys.stdout.write('# reading in '+vcf_fn+'\n') 
-#      num_lines = sum(1 for line in open(vcf_fn))
-#      pbar = ProgressBar(widgets=self._widgets,max_value=num_lines)
       for line in vcf_in:
         if line.startswith('#'):
           continue
@@ -183,8 +179,9 @@ class PersonalizeGenome :
               key,value = i.split('=')
               result[key] = value
           if (result['VT'] == 'SNP'): 
+#          if len(result['REF'])==1 and len(result['ALT'])==1:
             geno = result['SAMPLE'].split(':')[0]
-            if '|' in geno:
+            if ('|' in geno):
               g1 = int(geno.split('|')[0])
               g2 = int(geno.split('|')[1])
               alt = result['ALT'].split(',')
@@ -194,12 +191,82 @@ class PersonalizeGenome :
                   v1[result['CHROM']][int(result['POS'])] = [alleles[0],alleles[g1]]
                 if (g2 != 0):
                   v2[result['CHROM']][int(result['POS'])] = [alleles[0],alleles[g2]]
-    vcf_in.close()
+      vcf_in.close()
     return v1,v2
+
+  def read_in_vcf_nmask(self):
+    sys.stdout.write('# storing vcf files \n')
+    CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X']
+    VCF_HEADER = ['CHROM','POS','ID','REF','ALT','QUAL','FILTER','INFO','FORMAT','SAMPLE']
+    v = defaultdict(list)
+    for c in CHROMS:
+      if self._gzipped:
+        vcf_fn = self._vcf + '/' + c + '.vcf.gz'
+        vcf_in = gzip.open(vcf_fn)
+      else:
+        vcf_fn = self._vcf + '/' + c +'.vcf'
+        vcf_in = open(vcf_fn)
+      sys.stdout.write('# reading in '+vcf_fn+'\n')
+      for line in vcf_in:
+        if line.startswith('#'):
+          continue
+        else:
+          result = {}
+          fields = line.rstrip().split()
+          for i,col in enumerate(VCF_HEADER):
+            result[col] = fields[i]
+          infos = [x for x in result['INFO'].split(';') if x.strip()]
+          for i in infos:
+            if '=' in i:
+              key,value = i.split('=')
+              result[key] = value
+#          if len(result['REF'])==1 and len(result['ALT'])==1:
+          alt = result['ALT'].split(',')
+          alleles = [result['REF']] + alt
+          if all([len(s)==1 for s in alleles]):
+            geno = result['SAMPLE'].split(':')[0]
+            if ('|' in geno):
+              g1 = int(geno.split('|')[0])
+              g2 = int(geno.split('|')[1])
+#              alt = result['ALT'].split(',')
+#              alleles = [result['REF']] + alt
+              if ( re.match(r'[ACGT]',alleles[0]) and re.match(r'[ACGT]',alleles[g1]) and re.match(r'[ACGT]',alleles[g2])):
+                if (g1 != 0) or (g2!=0):
+                  v[result['CHROM']].append(int(result['POS']))
+            elif ('/' in geno):
+              try:
+                g1 = int(geno.split('/')[0])
+                g2 = int(geno.split('/')[1])
+#                alt = result['ALT'].split(',')
+#                alleles = [result['REF']] + alt
+                if ( re.match(r'[ACGT]',alleles[0]) and re.match(r'[ACGT]',alleles[g1]) and re.match(r'[ACGT]',alleles[g2])):
+                  if (g1 != 0) or (g2!=0):
+                    v[result['CHROM']].append(int(result['POS']))
+              except:
+                continue
+    return v
 
   def personalize_genome(self):
     print "personalizing genome"
-    if self._rnaedit:
+    if self._nmask:
+      nref = self.read_reference()
+      vcf = self.read_in_vcf_nmask()
+      editSites = []
+      report_out = open(self._report,'w')
+      nref_out = open(self._nRef,'w')
+      snpCounter = 0
+      for chrom in vcf:
+        for pos in vcf[chrom]:
+          nref['chr'+chrom][int(pos)-1] = 'N'
+          snpCounter += 1
+      for chrom in nref:
+        nref_out.write('>'+chrom+'\n')
+        nref_out.write("".join(nref[chrom])+'\n')
+      nref.clear()
+      nref_out.close()
+      report_out.write('# number of N-masked SNPs: '+ str(snpCounter) + '\n')
+      
+    elif self._rnaedit:
       hap1 = self.read_reference()
       vcf1,vcf2 = self.read_in_vcf()
       editSites = self.read_in_edit()
@@ -296,7 +363,7 @@ class PersonalizeGenome :
     return
 
 class DiscoverSpliceJunctions :
-  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus):
+  def __init__(self, outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus,nrefBam):
     self._outDir = outDir
     self._vcf = os.path.join(vcf,chromosome+'.vcf') 
     self._gtf = gtf
@@ -317,7 +384,8 @@ class DiscoverSpliceJunctions :
     self._printall = printall
     self._consensus = consensus
     self._widgets = [Percentage(),' Processed: ', Counter(), ' lines (', Timer(), ')']
-    
+    self._nrefBam = nrefBam
+
   def read_in_rna_editing(self):
     logging.info('reading in rna editing events')
     e = defaultdict(lambda:defaultdict(list))
@@ -335,6 +403,43 @@ class DiscoverSpliceJunctions :
           result[col] = fields[i]
         e[result['chromosome'][3:]][(int(result['position'])-1)/100].append(int(result['position'])-1)
     return e
+
+  def read_in_vcf_nmasked(self):
+    if self._gzipped:
+      vcf_in = gzip.open(self._vcf+'.gz')
+    else:
+      vcf_in = open(self._vcf)
+    v = defaultdict(lambda:defaultdict(list))
+    vids = defaultdict(lambda:defaultdict(str))
+    for line in vcf_in:
+      if line.startswith('#'): # skip over header lines 
+        continue
+      else:
+        result = {} # store line in dictionary                                                                                                                                                            
+        fields = line.rstrip().split()
+        for i,col in enumerate(self._VCFheader):
+          result[col] = fields[i]
+        infos = [x for x in result['INFO'].split(';') if x.strip()]
+        for i in infos:
+          if '=' in i:
+            key,value = i.split('=')
+            result[key] = value
+        geno = result['SAMPLE'].split(':')[0]
+        try:
+          g1 = int(geno.split('/')[0]) ## hap1 genotype                                                                                                                                                 
+          g2 = int(geno.split('/')[1]) ## hap2 genotype                                                                                                                                                 
+          alt = result['ALT'].split(',') ## alternate allele(s) in a list
+          alleles = [result['REF']] + alt ## [ref, alt1, alt2,...]                                                                                                                                      
+          if all([len(s)==1 for s in alleles]) and len(alt)==1: # all snps
+            if ( re.match(r'[ACGT]',alleles[0]) and re.match(r'[ACGT]',alleles[g1]) and re.match(r'[ACGT]',alleles[g2])): ## make sure ref and alt alleles are A,C,T,or G                                 
+              if (g1!=g2): # heterozygous snp                                                                                                                                                
+                v[(int(result['POS'])-1)/100][int(result['POS'])-1] = [result['REF'],result['ALT']]
+                vids[(int(result['POS'])-1)/100][int(result['POS'])-1] = result['ID']
+        except:
+          continue
+    vcf_in.close()
+    return v,vids
+
 
   def read_in_vcf(self):
     if self._gzipped:
@@ -613,9 +718,48 @@ class DiscoverSpliceJunctions :
         return 2,snps,allele
       else:
         return 1,snps,allele
+  
+  def haplotype_specific_read_nmasked(self,r,v):
+    # 0 = covers het snps, 3 = multimapping, 5 = no snps
+   if not self.is_unique(r):
+      return 3,[],[]
+   reference_positions = r.get_reference_positions()
+   snps = [p for p in reference_positions if p in v[p/100]]
+   if len(snps)==0:
+     return 5,[],[]
+   else:
+     allele = ['R' if r.seq[reference_positions.index(p)]==v[p/100][p][0] else 'A' for p in snps]
+     return 0,snps,allele
 
-      
+  def haplotype_specific_nmasked(self):
+    sys.stdout.write('# assigning haplotype specific reads to N-masked genome\n')
+    bam = pysam.Samfile(self._nrefBam)
+    snpreads_nref = defaultdict(list)
+    reads_nref = defaultdict(list)
+    sys.stdout.write("# reading in VCF file\n")
+    hetsnps,snpids = self.read_in_vcf_nmasked()
+    spec_nref = list()
+    refalt_nref = defaultdict(list)
+    snps_nref = defaultdict(list)
 
+    sys.stdout.write("# assigning reads\n")
+    for r in bam.fetch('chr'+str(self._chromosome)):
+      spec,snppos,refalt = self.haplotype_specific_read_nmasked(r,hetsnps)
+      snpreads_nref[spec].append(r.qname)
+      reads_nref[r.qname].append(r)
+      refalt_nref[r.qname] += [refalt[i]  for i in range(len(refalt)) if (snppos[i] not in snps_nref[r.qname]) ]
+      snps_nref[r.qname] += [snppos[i] for i in range(len(snppos)) if snppos[i] not in snps_nref[r.qname] ]
+    
+    snpreads_nref[0] = list(set(snpreads_nref[0]))
+    sys.stdout.write("# print bam file output\n")
+    out = pysam.Samfile(self._outDir + "/nmask."+self._chromosome+'.bam','wb',template=bam)
+    for qname in snpreads_nref[0]:
+      for r in reads_nref[qname]:
+        r.tags += [('SP',';'.join([str(p) for p in snps_nref[qname]])),('GT',';'.join([x for x in refalt_nref[qname]])), ('RF',';'.join([hetsnps[p/100][p][0] for p in snps_nref[qname]])) , ('AT',';'.join([hetsnps[p/100][p][1] for p in snps_nref[qname]]))]
+        out.write(r)
+    return
+    
+    
   def haplotype_specific_junctions(self):
     print "assigning haplotype specific reads"
     bam1 = pysam.Samfile(self._hap1Bam)
@@ -998,6 +1142,7 @@ def main(args) :
   else:
     editFile = ""
 
+  nmask = args.nmask
   printall = args.printall
   writeBam = args.writeBam
 #  multiprocessing = args.p
@@ -1018,9 +1163,9 @@ def main(args) :
     sys.stderr.write(helpStr + "\n\n")
   else :
     setting = command[1].strip().lower()
-#    outDir = open(".rPGAProject.yaml").readline().rstrip()
     hap1Ref = os.path.join(outDir, "hap1.fa")
     hap2Ref = os.path.join(outDir, "hap2.fa")
+    nRef = os.path.join(outDir, "mask.fa")
 
     if setting == "personalize" :
       print "personalizing genome"
@@ -1038,11 +1183,8 @@ def main(args) :
         if not args.v:
           sys.stderr.write("ERROR: rPGA run personalize command requires -v parameter \nExample: rPGA run mapping -v vcf_directory -r reference.fa  -o rPGA \n")
           sys.exit()
-#        ref = open(".rPGAGenome.yaml").readline().rstrip()
-#        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-        p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref,rnaedit,editFile,gzipped)
+        p = PersonalizeGenome(outDir, vcf, ref, hap1Ref, hap2Ref,rnaedit,editFile,gzipped,nRef,nmask)
         p.personalize_genome()
-
 
     elif setting == "mapping" :
       if command[1].strip().lower() == "help" :
@@ -1054,37 +1196,44 @@ def main(args) :
         sys.exit()
       elif len(command) == 3:
         if command[2].strip().lower() == "alleles":
-#          seqs = ".rPGASeqs.yaml"
           seqs = ' '.join((args.s).split(','))
           if len((args.s).split(','))==0 or len((args.s).split(','))>2:
             sys.stderr.write("ERROR: Sequence parameter -s input is  not correct\n Example: rPGA run mappng alleles -s reads_1.fq,reads_2.fq -o rPGA\n")
             sys.exit()
-#          ref = open(".rPGAGenome.yaml").readline().rstrip()
-#          vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-          if not os.path.exists(os.path.join(outDir, "HAP1/STARindex")):
-            os.makedirs(os.path.join(outDir, "HAP1/STARindex"))
-          if not os.path.exists(os.path.join(outDir, "HAP2/STARindex")):
-            os.makedirs(os.path.join(outDir, "HAP2/STARindex"))
-          if not os.path.exists(os.path.join(outDir, "HAP1/STARalign")):
-            os.makedirs(os.path.join(outDir, "HAP1/STARalign"))
-          if not os.path.exists(os.path.join(outDir, "HAP2/STARalign")):
-            os.makedirs(os.path.join(outDir, "HAP2/STARalign"))
-          STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
-          STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
-          STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
-          STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
-          sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
-          sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
-          os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.sam'))
-          os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.sam'))
-          os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.bam'))
-          os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.bam'))
+          if nmask:
+            if not os.path.exists(os.path.join(outDir,"MASK/STARindex")):
+              os.makedirs(os.path.join(outDir, "MASK/STARindex"))
+            if not os.path.exists(os.path.join(outDir,"MASK/STARalign")):
+              os.makedirs(os.path.join(outDir, "MASK/STARalign"))
+            STAR_create_genome(outDir, nRef, "MASK",threads)
+            STAR_perform_mapping(outDir, "MASK", seqs,threads,mismatches,gzipped,multimapped)
+            sam_to_sorted_bam(outDir+'/MASK/STARalign/Aligned.out')
+            os.remove(os.path.join(outDir,'MASK/STARalign/Aligned.out.sam'))
+            os.remove(os.path.join(outDir,'MASK/STARalign/Aligned.out.bam'))
+          else:
+            if not os.path.exists(os.path.join(outDir, "HAP1/STARindex")):
+              os.makedirs(os.path.join(outDir, "HAP1/STARindex"))
+            if not os.path.exists(os.path.join(outDir, "HAP2/STARindex")):
+              os.makedirs(os.path.join(outDir, "HAP2/STARindex"))
+            if not os.path.exists(os.path.join(outDir, "HAP1/STARalign")):
+              os.makedirs(os.path.join(outDir, "HAP1/STARalign"))
+            if not os.path.exists(os.path.join(outDir, "HAP2/STARalign")):
+              os.makedirs(os.path.join(outDir, "HAP2/STARalign"))
+            STAR_create_genome(outDir, hap1Ref, "HAP1",threads)
+            STAR_create_genome(outDir, hap2Ref, "HAP2",threads)
+            STAR_perform_mapping(outDir, "HAP1", seqs,threads,mismatches,gzipped,multimapped)
+            STAR_perform_mapping(outDir, "HAP2", seqs,threads,mismatches,gzipped,multimapped)
+            sam_to_sorted_bam(outDir+'/HAP1/STARalign/Aligned.out')
+            sam_to_sorted_bam(outDir+'/HAP2/STARalign/Aligned.out')
+            os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.sam'))
+            os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.sam'))
+            os.remove(os.path.join(outDir,'HAP1/STARalign/Aligned.out.bam'))
+            os.remove(os.path.join(outDir,'HAP2/STARalign/Aligned.out.bam'))
         else:
           sys.stderr.write("Input arguments "+ command+" are not correct\n")
           sys.stderr.write(helpStr + '\n\n')
           sys.exit()
       else :
-#        seqs = ".rPGASeqs.yaml"
         if not args.r:
           sys.stderr.write("ERROR: rPGA run mapping command requires -r parameter \nExample: rPGA run mapping -r reference.fa -s reads_1.fq,reads_.fq -o rPGA \n")
           sys.exit()
@@ -1132,10 +1281,6 @@ def main(args) :
         sys.exit()
       else :
         discoverJunctions = True
-#        ref = open(".rPGAGenome.yaml").readline().rstrip()
-#        vcf = open(".rPGAGenotype.yaml").readline().rstrip()
-#        seqs = ".rPGASeqs.yaml"
-#        gtf = open(".rPGAJunctions.yaml").readline().rstrip()
         if not args.v:
           sys.stderr.write("ERROR: rPGA run discover command requires -v parameter \nExample: rPGA run discover -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
           sys.exit()
@@ -1160,19 +1305,9 @@ def main(args) :
         chromosome = args.c
         if chromosome.startswith('chr'):
           chromosome = chromosome[3:]
-
-#        if multiprocessing:
-#          import multiprocessing
-#          CHROMS = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y']
-#          processes = [mp.Process(target=worker, args=(c,)) for c in CHROMS]
-#          for p in processes:
-#            p.start()
-#          for p in processes:
-#            p.join()
-
-        else:
-          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus)
-          p.haplotype_specific_junctions()
+        nrefBam = ""
+        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus,nrefBam)
+        p.haplotype_specific_junctions()
 
     elif setting == "alleles":
       if command[1].strip().lower() == "help" :
@@ -1184,32 +1319,43 @@ def main(args) :
       else:
         discoverJunctions = False        
         writeBam = True
-#        if args.v:
-#          vcf = args.v
-#        else:
-#          vcf = open(".rPGAGenotype.yaml").readline().rstrip()
         if not args.v:
           sys.stderr.write("ERROR: rPGA run alleles command requires -v parameter \nExample: rPGA run alleles -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
           sys.exit()
         gtf = ""
-        if args.b1:
-          hap1Bam = args.b1
+        if not nmask:
+          if args.b1:
+            hap1Bam = args.b1
+          else:
+            hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
+          if args.b2:
+            hap2Bam = args.b2
+          else:
+            hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
+          refBam = ""
+          if not args.c:
+            sys.stderr.write("ERROR: rPGA run alleles command requires -c parameter \nExample: rPGA run alleles -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+            sys.exit()
+          chromosome = args.c
+          if chromosome.startswith('chr'):
+            chromosome = chromosome[3:]
+          nrefBam = ""
+          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus,nrefBam)
+          p.haplotype_specific_junctions()
         else:
-          hap1Bam = outDir+'/HAP1/STARalign/Aligned.out.sorted.bam'
-        if args.b2:
-          hap2Bam = args.b2
-        else:
-          hap2Bam = outDir+'/HAP2/STARalign/Aligned.out.sorted.bam'
-        refBam = ""
-        if not args.c:
-          sys.stderr.write("ERROR: rPGA run alleles command requires -c parameter \nExample: rPGA run alleles -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
-          sys.exit()
-        chromosome = args.c
-        if chromosome.startswith('chr'):
-          chromosome = chromosome[3:]
-        p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus)
-        p.haplotype_specific_junctions()
-
+          writeBam = False
+          hap1Bam = ""
+          hap2Bam = ""
+          refBam = ""
+          if not args.c:
+            sys.stderr.write("ERROR: rPGA run alleles command requires -c parameter \nExample: rPGA run alleles -c 1 -v vcf_directory -g annotation.gtf  -o rPGA \n")
+            sys.exit()
+          chromosome = args.c
+          if chromosome.startswith('chr'):
+            chromosome = chromosome[3:]
+          nrefBam = outDir+'/MASK/STARalign/Aligned.out.sorted.bam'
+          p = DiscoverSpliceJunctions(outDir, vcf, gtf, hap1Bam, hap2Bam, refBam, chromosome, writeBam, discoverJunctions,writeConflicting,rnaedit,editFile,gzipped,printall,consensus,nrefBam)
+          p.haplotype_specific_nmasked()
     else :
       sys.stderr.write("ERROR: rPGA run -- unknown command: " + command + "\n")
       sys.stderr.write(helpStr + "\n\n")

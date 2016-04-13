@@ -71,14 +71,21 @@ def main(args) :
         sys.exit()
 
       outDir = args.o
-      pysam.merge('-f',outDir+'/hap1.bam',outDir+'/hap1.1.bam',outDir+'/hap1.2.bam',outDir+'/hap1.3.bam',outDir+'/hap1.4.bam',outDir+'/hap1.5.bam',outDir+'/hap1.6.bam',
+
+      if args.nmask:
+        pysam.merge('-f',outDir+'/nmask.bam',outDir+'/nmask.1.bam',outDir+'/nmask.2.bam',outDir+'/nmask.3.bam',outDir+'/nmask.4.bam',outDir+'/nmask.5.bam',outDir+'/nmask.6.bam',
+                  outDir+'/nmask.7.bam',outDir+'/nmask.8.bam',outDir+'/nmask.9.bam',outDir+'/nmask.10.bam',outDir+'/nmask.11.bam',outDir+'/nmask.12.bam',outDir+'/nmask.13.bam',
+                  outDir+'/nmask.14.bam',outDir+'/nmask.15.bam',outDir+'/nmask.16.bam',outDir+'/nmask.17.bam',outDir+'/nmask.18.bam',outDir+'/nmask.19.bam',outDir+'/nmask.20.bam',
+                  outDir+'/nmask.21.bam',outDir+'/nmask.22.bam',outDir+'/nmask.X.bam')
+      else:
+        pysam.merge('-f',outDir+'/hap1.bam',outDir+'/hap1.1.bam',outDir+'/hap1.2.bam',outDir+'/hap1.3.bam',outDir+'/hap1.4.bam',outDir+'/hap1.5.bam',outDir+'/hap1.6.bam',
                   outDir+'/hap1.7.bam',outDir+'/hap1.8.bam',outDir+'/hap1.9.bam',outDir+'/hap1.10.bam',outDir+'/hap1.11.bam',outDir+'/hap1.12.bam',outDir+'/hap1.13.bam',
                   outDir+'/hap1.14.bam',outDir+'/hap1.15.bam',outDir+'/hap1.16.bam',outDir+'/hap1.17.bam',outDir+'/hap1.18.bam',outDir+'/hap1.19.bam',outDir+'/hap1.20.bam',
-                  outDir+'/hap1.21.bam',outDir+'/hap1.22.bam',outDir+'/hap1.X.bam',outDir+'/hap1.Y.bam')
-      pysam.merge('-f',outDir+'/hap2.bam',outDir+'/hap2.1.bam',outDir+'/hap2.2.bam',outDir+'/hap2.3.bam',outDir+'/hap2.4.bam',outDir+'/hap2.5.bam',outDir+'/hap2.6.bam',
+                  outDir+'/hap1.21.bam',outDir+'/hap1.22.bam',outDir+'/hap1.X.bam')
+        pysam.merge('-f',outDir+'/hap2.bam',outDir+'/hap2.1.bam',outDir+'/hap2.2.bam',outDir+'/hap2.3.bam',outDir+'/hap2.4.bam',outDir+'/hap2.5.bam',outDir+'/hap2.6.bam',
                   outDir+'/hap2.7.bam',outDir+'/hap2.8.bam',outDir+'/hap2.9.bam',outDir+'/hap2.10.bam',outDir+'/hap2.11.bam',outDir+'/hap2.12.bam',outDir+'/hap2.13.bam',
                   outDir+'/hap2.14.bam',outDir+'/hap2.15.bam',outDir+'/hap2.16.bam',outDir+'/hap2.17.bam',outDir+'/hap2.18.bam',outDir+'/hap2.19.bam',outDir+'/hap2.20.bam',
-                  outDir+'/hap2.21.bam',outDir+'/hap2.22.bam',outDir+'/hap2.X.bam',outDir+'/hap2.Y.bam')
+                  outDir+'/hap2.21.bam',outDir+'/hap2.22.bam',outDir+'/hap2.X.bam',outDir)
     elif command == "auto":
 #      if args[0].strip().lower() == "help" :
 #        sys.stderr.write(helpStr + "\n\n")
