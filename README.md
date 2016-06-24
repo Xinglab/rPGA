@@ -6,7 +6,7 @@
                                  /_/  /_/    \____/_/  |_|
 
                                ****************************
-                               *         V 1.3.5          *
+                               *         V 2.0.0          *
                                ****************************
 
 
@@ -83,8 +83,8 @@ location for all users, you may need to prefix these with sudo.
 To begin the installation, unpack the distribution and CD into the newly created
 directory.
 
-    tar -xf rPGA-1.3.5.tar.gz
-    cd rPGA-1.3.5
+    tar -xf rPGA-2.0.0.tar.gz
+    cd rPGA-2.0.0
 
 Or, clone from the github repository.
 
@@ -165,7 +165,7 @@ in a directory and named 1.vcf, 2.vcf, 3.vcf,...
 At this step rPGA is ready to make the personalized genome. To do this run this
 command:
 
-    $ rPGA run personalize -r reference.fa -v genotype_directory -o output_directory
+    $ rPGA personalize -r reference.fa -v genotype_directory -o output_directory
 
 rPGA personalize options:
 
@@ -204,7 +204,7 @@ depending on the options of the mapper).
 
 To align reads to personal genomes:
 
-    $ rPGA run mapping -r reference.fa -s reads_1.fastq,[reads_2.fastq] -o outdir
+    $ rPGA mapping -r reference.fa -s reads_1.fastq,[reads_2.fastq] -o outdir
 
 rPGA mapping options:
 
@@ -231,29 +231,22 @@ Outputs:
 The final step is to discover novel junctions using the discover function.
 
 Inputs:
-  1. Chromosome to be analyzed
   2. Annotation file (GTF)
-  3. Genotype directory containing VCF files
+  3. VCF file or Genotype directory containing VCF files
 
 Usage:
 
-    $ rPGA run discover -c CHROM -g annotation.gtf -v genotype_directory -o output
+    $ rPGA discover -g annotation.gtf -v genotype_directory -o output
 
 rPGA discover options:
 
-     -c *            Chromosome to analyze (required)
-                     Note: can be in the form -c 1 or -c chr1 to analyze chrom 1  
      -g *            Annotation file (GTF)
-     -v *            Genotype directory (VCF)
+     -v *            Genotype file or directory (VCF)
      -o *            Output directory
-     --writeBam      flag to write allele specific bam files
-     --conflict      flag to write bam file containing conflicting reads
      --rnaedit **    flag to consider rna editing sites 
      -e **           file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
      --gz            flag denoting VCF genotype files are gzipped
-     --printall      flag to include non-haplotype specific reads in bam output file
-     --consensus     flag to print consensus BAM file (described below)
      -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
      -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
      -br ***         Reference alignment file to reference genome (BAM)
@@ -262,8 +255,7 @@ rPGA discover options:
 
 ** Note: if --rnaedit flag is used, a file containing RNA editing events must be
 provided using -e. In this case, rPGA will disregard heterozygous SNPs that overlap
-RNA editing sites when assigning mapped reads to haplotypes. Reads that cover RNA editing 
-sites will be printed to hap1.chrom.rnaedit.bam and hap2.chrom.rnaedit.bam
+RNA editing sites when assigning mapped reads to haplotypes. 
 
 *** Use these if you would like to supply your own personal genome mapping alignment files. 
 If rPGA run mapping (previous step) is used there is no need to provide rPGA the alignment 
@@ -295,18 +287,6 @@ The name of each splice junction is in the format J\_R/NC/N3/N5/N35\_SNPid.
 SNPid is a comma deliminated list of the splice site SNP ids, which match the 
 SNP ids in the given VCF file..
 
-If --rnaedit is used, rPGA will also output bam files containing reads 
-that overlap RNA editing sites:
-  1. hap1.chrom.rnaedit.bam
-  2. hap2.chrom.rnaedit.bam
-
-If --writeBam flag is used, rPGA will output allele specific bam files:
-  1. hap1.chrom.bam
-  2. hap2.chrom.bam
-
-If --consensus flag is used, rPGA will output one consensus bam file:
-  1. consensus.chrom.bam
-
 Usage: Allele Specific Bam Files
 --------------------------------
 
@@ -322,7 +302,7 @@ options in step 3 (See description of parameters below).
 
 Inputs:
   1. Reference genome (FASTA)
-  2. Directory containing VCF files, one per chromosome
+  2. VCF file or Directory containing VCF files
 
 Download the reference sequences for the species from
 http://hgdownload.cse.ucsc.edu/downloads.html.
@@ -343,24 +323,21 @@ To extract the individual genotype, if necessary:
     $ bcftools view -s sample_name -v snps -p /path/to/ALL.chr.genotypes.vcf > \
     sample.chr.genotype.vcf
 
-Note rPGA requires a separate vcf file for each chromosome. They should be located
-in a directory and named 1.vcf, 2.vcf, 3.vcf,... 
-
 At this step rPGA is ready to make the personalized genome. To do this run this
 command:
 
-    $ rPGA run personalize -r reference.fa -v genotype_directory -o output_directory
+    $ rPGA personalize -r reference.fa -v genotype_directory -o output_directory
 
 rPGA personalize options:
 
      -o *            output directory
      -r *            reference genome
-     -v *            VCF directory
+     -v *            VCF file or directory
      --gz            flag denoting VCF files are gzipped 
      --rnaedit **    flag to N-mask rna editing sites
      -e **           file containing RNA editing sites, can be downloaded from RADAR
                      (http://rnaedit.com/download)
-     --nmask ***     flag to make one N-mask genome instead of two personal genomes
+     --nmask         Flag to n-mask variant sites (use if using unphased data)
 
 \* Required parameters
 
@@ -397,7 +374,7 @@ depending on the options of the mapper).
 
 To align reads to personal genomes:
 
-    $ rPGA run mapping alleles -r reference.fa -s reads_1.fastq,[reads_2.fastq] -o outdir
+    $ rPGA mapping alleles -r reference.fa -s reads_1.fastq,[reads_2.fastq] -o outdir
 
 rPGA mapping options:
 
@@ -406,7 +383,7 @@ rPGA mapping options:
      -o *         output directory 
      -T	          number of threads STAR uses, default is 8
      -M           max number of multiple alignments, default is 20
-     -N           max number of read mismatches, default is 3
+     -N           max number of read pair mismatches, default is 6
      --gz         flag denoting sequence reads are gzipped
      --nmask **   flag to do N-mask RNA-seq alignment
 
@@ -431,17 +408,14 @@ Outputs (nmask flag):
 Finally, assign mapped reads to hap1 or hap2 using alleles function. 
 
 Inputs:
-  1. Chromosome to analyze
-  2. Directory containing one VCF files
+  2. VCF file or directory containing VCF files
 
 Outputs:
-  1. hap1.chrom.bam
-  2. hap2.chrom.bam
-  3. report.chrom.txt
+  1. hap1.sorted.bam
+  2. hap2.sorted.bam
 
 Outputs (if nmask flag is used):
-  1. nmask.chrom.bam
-  2. report.chrom.bam
+  1. nmask.sorted.bam
 
 Usage:
 	
@@ -449,7 +423,6 @@ Usage:
 
 rPGA alleles options:
 
-     -c *            Chromosome to be analyzed (C or -chrC to analyze chrom C)
      -v *            Genotype directory containing VCF files
      -o *            Output directory
      --conflict      flag to write bam file containing conflicting reads
@@ -457,8 +430,6 @@ rPGA alleles options:
      -e	**           file containing RNA editing sites; can be downloaded from
                      RADAR (www.rnaedit.com/download/)
      --gz            flag denoting VCF genotype files are gzipped
-     --printall      flag to include non-haplotype specific reads in bam output file
-     --consensus     flag to print consensus bam file
      -b1 ***         Haplotype 1 alignment file to personal genome (BAM)
      -b2 ***         Haplotype 2 alignment file to personal genome (BAM)
      --nmask ****    flag to do N-masking allele specific assignment
@@ -476,20 +447,6 @@ files, rPGA will use the alignments in HAP1/STARalign and HAP2/STARalign.
 **** If nmask flag is used, reads covering heterozygous SNPs are assigned to the reference 
 or alternate allele. Note, --nmask option must be used for all three rPGA run steps 
 (personalize, mapping, and alleles)
-
-
-Once you have generated allele specific bam files for all 22 autosomal chromosomes
-or all 22 autosomes and X, you can merge them into one allele specific bam file
-for each haplotype, hap1.bam and hap2.bam.
-
-To merge all 22 autosomes run:
-
-    $ rPGA merge auto
-
-To merge all 22 autosome and X:
-
-    $ rPGA merge all
-
 
 
 ### Generating Allele Specific Bam Files
